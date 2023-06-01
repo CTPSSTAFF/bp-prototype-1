@@ -1,24 +1,43 @@
 <!doctype html>
 <html lang="en">
 <head>
+	 <!-- JS for jQuery library, fetched from CDN -->
+	 <script src="https://code.jquery.com/jquery-3.7.0.min.js" 
+	         integrity="sha256-2Pmvv0kuTBOenSvLm6bvfBSSHrUJ+3A7x6P5Ebd07/g=" 
+			 crossorigin="anonymous">
+		</script>
+	
+	<!-- JS for lodash.js library, fetched from CDN -->
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js" 
+	        integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ==" 
+			crossorigin="anonymous" 
+			referrerpolicy="no-referrer">
+		</script>
+		
 	<!-- CSS for Leaflet library -->
 	 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
-     crossorigin=""/>
-	 
+		   integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+		   crossorigin=""/>
+		   
 	 <!-- CSS for app -->
 	 <link rel="stylesheet" href="css/prototype1.css">
-	  
-	  <!-- JS for Leaflet library: Make sure you put this AFTER Leaflet's CSS -->
+	 
+	 <!-- JS for Leaflet library: Make sure this is AFTER Leaflet's CSS -->
 	 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-		 integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
-		 crossorigin="">
+		     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+		     crossorigin="">
 	</script>
+	
+	<!-- JS for prototype app -->
+	<script src="js/prototype1.js"></script>
 </head>
 <body>
 	<div id="map">
 	</div>
-	<!-- JS for app -->
-	<script src="js/prototype1.js"></script>
+	<script>
+	$(document).ready(function() {
+		initialize();	
+	});
+	</script>
 </body>
 </html>
