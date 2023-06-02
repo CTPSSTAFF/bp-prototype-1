@@ -10,6 +10,10 @@ var map = {};
 // Arrays of GeoJSON features for count locations and counts
 var countlocs = [],
     counts = [];
+	
+// Danfo dataframes for count locations and counts
+var countlocs_df = {},
+    counts_df = {};
 
 function main_app() {
 	map = L.map('map').setView([regionCenterLat, regionCenterLng], initialZoom);
@@ -34,8 +38,17 @@ function initialize() {
             return; 
         }
 		countlocs = bp_countlocs[0].features;
-		// Note:the count data for each count 'feature' is found in counts[i].properties
-		counts = bp_counts[0].features;
+		// Note: the count data for each count 'feature' is found in counts[i].properties;
+		//       it needs to be 'hoisted up' one level (so to speak) before being loaded
+		//       into the 'counts' array
+		var count_features = bp_counts[0].features;
+		count_features.forEach(function(feature) {
+			counts.push(feature.properties);
+		});
+		// Convert JSON arrays to Danfo data frames
+		countlocs_df = new dfd.DataFrame(countlocs);
+		counts_df = new dfd.DataFrame(counts);
+		var _DEBUG_HOOK_ = 0;
 		main_app();
 	});
 } // initialize()
