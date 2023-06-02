@@ -48,6 +48,10 @@ function initialize() {
 		// Convert JSON arrays to Danfo data frames
 		countlocs_df = new dfd.DataFrame(countlocs);
 		counts_df = new dfd.DataFrame(counts);
+		
+		// temp
+		countlocs_df.print()
+		
 		var _DEBUG_HOOK_ = 0;
 		main_app();
 	});
