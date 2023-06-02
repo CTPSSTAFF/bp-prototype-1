@@ -30,34 +30,19 @@ function main_app() {
 	////////////////////////////////////
 	// Add count locations to map
 	
-	/*
+	
 	var geojsonMarkerOptions = {
-		radius: 8,
+		radius: 3,
 		fillColor: "#ff7800",
 		color: "#000",
 		weight: 1,
 		opacity: 1,
 		fillOpacity: 0.8
 	};
-	
-	L.geoJSON(countlocs, {
+	const countlocs_layer =  L.geoJSON(countlocs_geojson, {
 		pointToLayer: function (feature, latlng) {
 			return L.circleMarker(latlng, geojsonMarkerOptions);
 		}
-	}).addTo(map);
-	*/
-	
-	function onEachFeature(feature, layer) {
-		let popupContent = `<p>I started out as a GeoJSON ${feature.geometry.type}, but now I'm a Leaflet vector!</p>`;
-
-		if (feature.properties && feature.properties.popupContent) {
-			popupContent += feature.properties.popupContent;
-		}
-
-		layer.bindPopup(popupContent);
-	}
-	
-	const countlocs_layer = L.geoJSON(countlocs_geojson, {
 	}).addTo(map);
 	
 	_DEBUG_HOOK_ = 1;
