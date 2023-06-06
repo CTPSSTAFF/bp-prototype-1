@@ -7,9 +7,9 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Arrays of GeoJSON features for count locations and counts
+// Arrays of GeoJSON features for count locations (features) and counts (just properties of these non-features)
 var countlocs_features = [],
-    counts_features = [];
+    counts_properties = [];
 	
 // Danfo dataframes for count locations and counts
 var countlocs_df = {},
@@ -35,9 +35,15 @@ function populate_pick_lists(countlocs, counts) {
 		$('#select_town').append(new Option(town, town));
 	});
 	
-	
-	// Year pick-list - TBD
-	var years = [];
+	// Year pick-list
+	var years = _.map(counts, function(e) { return e.count_date.substr(0,4); });
+	var years_uniq = _.uniq(years);
+	// Reverse list of years, latest year appears at top-of-list
+	years_uniq = years_uniq.sort().reverse();
+	$('#select_year').empty();
+	years_uniq.forEach(function(year) {
+		$('#select_year').append(new Option(year, year));
+	});
 }
 
 function main_app() {
@@ -83,20 +89,18 @@ function initialize() {
         } 
 		countlocs_features = bp_countlocs[0].features;
 		
-		// Note: the count data for each count 'feature' is found in counts[i].properties;
-		//       it needs to be 'hoisted up' one level (so to speak) before being loaded
-		//       into the 'counts' array
-		counts_features = bp_counts[0].features;
-		counts_features.forEach(function(feature) {
-			counts_features.push(feature.properties);
+		// Note: the count data for each count 'feature' is found in the 'properties'
+		//       list of each such count 'feature' 
+		bp_counts[0].features.forEach(function(feature) {
+			counts_properties.push(feature.properties);
 		});
 		
 		// Convert JSON arrays to Danfo data frames
 		countlocs_df = new dfd.DataFrame(countlocs_features);
-		counts_df = new dfd.DataFrame(counts_features);
+		counts_df = new dfd.DataFrame(counts_properties);
 		
 		// Populate pick-lists
-		populate_pick_lists(countlocs_features, counts_features);
+		populate_pick_lists(countlocs_features, counts_properties);
 		
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').change(town_change_handler);
