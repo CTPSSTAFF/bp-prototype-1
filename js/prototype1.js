@@ -14,6 +14,31 @@ var countlocs_features = [],
 // Danfo dataframes for count locations and counts
 var countlocs_df = {},
     counts_df = {};
+	
+// On-change vent handlers for pick-lists
+function town_change_handler(e) {
+	var _DEBUG_HOOK = 0;
+}
+
+function year_change_handler(e) {
+	var _DEBUG_HOOK = 0;
+}
+
+// Populate the pick-lists, given the selected sets of countlocs and counts
+function populate_pick_lists(countlocs, counts) {
+	// Towns pick-list
+	var towns = _.map(countlocs, function(e) { return e.properties.town; });
+	var towns_uniq = _.uniq(towns);
+	towns_uniq = towns_uniq.sort();
+	$('#select_town').empty();
+	towns_uniq.forEach(function(town) {
+		$('#select_town').append(new Option(town, town));
+	});
+	
+	
+	// Year pick-list - TBD
+	var years = [];
+}
 
 function main_app() {
 	map = L.map('map').setView([regionCenterLat, regionCenterLng], initialZoom);
@@ -70,7 +95,13 @@ function initialize() {
 		countlocs_df = new dfd.DataFrame(countlocs_features);
 		counts_df = new dfd.DataFrame(counts_features);
 		
-		var _DEBUG_HOOK_ = 0;
+		// Populate pick-lists
+		populate_pick_lists(countlocs_features, counts_features);
+		
+		// Bind on-change event handler(s) for pick-list controls
+		$('#select_town').change(town_change_handler);
+		$('#select_year').change(year_change_handler);
+
 		main_app();
 	});
 } // initialize()
