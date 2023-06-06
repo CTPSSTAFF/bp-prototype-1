@@ -8,14 +8,46 @@ var initialZoom = 11;
 var map = {};
 
 // Arrays of GeoJSON features for count locations (features) and counts (just properties of these non-features)
-var countlocs_features = [],
-    counts_properties = [];
+var countlocs = [],
+    counts = [];
 	
 // Danfo dataframes for count locations and counts
 var countlocs_df = {},
     counts_df = {};
 	
-// On-change vent handlers for pick-lists
+// Set extent of leaflet map based on bounding box of bp_loc_ids
+function set_map_extent(loc_ids) {
+	var _DEBUG_HOOK = 0;
+	
+	// Compute bounding box of features for the given set of loc_ids
+	//        1. get feature for each loc_id, and get coordinates from italics
+	//        2. get bounding box (minX, minY, maxX, maxY) from that 
+	
+	var xcoords = [], ycoords = [], minx, miny, maxx, maxy;
+	
+	loc_ids.forEach(function(loc_id) {
+		var feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
+		xcoords = feature.geometry.coordinates[0];
+		ycoords = feature.geometry.coordinates[1];
+	});
+	minx = _.min(xcoords);
+	miny = _.min(ycoords);
+	maxx = _.max(xcoords);
+	maxy = _.max(ycoords):
+	
+	// Work in progress
+	
+	_DEBUG_HOOK = 2;
+}
+
+// Return array of bp_loc_ids (B-P count locations) for a given set of counts
+function counts_to_countlocs(counts) {
+	var bp_loc_ids = _.map(counts, function(c) { return c.bp_loc_id; });
+	bp_loc_ids = _.uniq(bp_loc_ids);
+	return bp_loc_ids;
+}
+	
+// On-change event handlers for pick-lists
 function town_change_handler(e) {
 	var town, filter_func, counts_for_town, years, years_uniq;
 	
@@ -27,7 +59,7 @@ function town_change_handler(e) {
 	} else {
 		filter_func = function(c) { return true; };
 	}
-	counts_for_town = _.filter(counts_properties, filter_func);
+	counts_for_town = _.filter(counts, filter_func);
 
 	years = _.map(counts_for_town, function(c) { return c.count_date.substr(0,4); });
 	years_uniq = _.uniq(years);
@@ -42,6 +74,9 @@ function town_change_handler(e) {
 	});
 	// Re-enable on-change event handler for 'select_year'
 	$('#select_year').on('change', year_change_handler);
+	
+	var town_countlocs = counts_to_countlocs(counts_for_town);
+	set_map_extent(town_countlocs);
 }
 
 function year_change_handler(e) {
@@ -79,10 +114,7 @@ function main_app() {
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(map);
 	
-	var _DEBUG_HOOK_ = 0;
-	
-	////////////////////////////////////
-	// Add count locations to map
+	// Add all count locations to map
 	var geojsonMarkerOptions = {
 		radius: 3,
 		fillColor: "#ff7800",
@@ -91,13 +123,11 @@ function main_app() {
 		opacity: 1,
 		fillOpacity: 0.8
 	};
-	const countlocs_layer =  L.geoJSON(countlocs_features, {
+	const countlocs_layer =  L.geoJSON(countlocs, {
 		pointToLayer: function (feature, latlng) {
 			return L.circleMarker(latlng, geojsonMarkerOptions);
 		}
 	}).addTo(map);
-	
-	_DEBUG_HOOK_ = 1;
 } // main_app()
 
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
@@ -113,20 +143,20 @@ function initialize() {
             alert("One or more requests to load data failed. Exiting application.");
             return; 
         } 
-		countlocs_features = bp_countlocs[0].features;
+		countlocs = bp_countlocs[0].features;
 		
 		// Note: the count data for each count 'feature' is found in the 'properties'
 		//       list of each such count 'feature' 
 		bp_counts[0].features.forEach(function(feature) {
-			counts_properties.push(feature.properties);
+			counts.push(feature.properties);
 		});
 		
-		// Convert JSON arrays to Danfo data frames
-		countlocs_df = new dfd.DataFrame(countlocs_features);
-		counts_df = new dfd.DataFrame(counts_properties);
+		// Convert JSON arrays to Danfo data frames - not yet used in app
+		countlocs_df = new dfd.DataFrame(countlocs);
+		counts_df = new dfd.DataFrame(counts);
 		
-		// Populate pick-lists
-		populate_pick_lists(countlocs_features, counts_properties);
+		// Populate pick-lists with initial values
+		populate_pick_lists(countlocs, counts);
 		
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').on('change', town_change_handler);
