@@ -17,11 +17,36 @@ var countlocs_df = {},
 	
 // On-change vent handlers for pick-lists
 function town_change_handler(e) {
-	var _DEBUG_HOOK = 0;
+	var town, filter_func, counts_for_town, years, years_uniq;
+	
+	town = $( "#select_town" ).val();
+	// Find years for which we have counts for the town
+	// First, find all counts for town; then find years of all these counts
+	if (town !== "All") {
+		filter_func = function(c) { return c.municipality == town; };
+	} else {
+		filter_func = function(c) { return true; };
+	}
+	counts_for_town = _.filter(counts_properties, filter_func);
+
+	years = _.map(counts_for_town, function(c) { return c.count_date.substr(0,4); });
+	years_uniq = _.uniq(years);
+	years_uniq = years_uniq.sort().reverse();
+	
+	// Disable on-change event handler for 'select_year'
+	$('#select_year').off()
+	// Clear-out, and populate pick list
+	$('#select_year').empty();
+	years_uniq.forEach(function(year) {
+		$('#select_year').append(new Option(year, year));
+	});
+	// Re-enable on-change event handler for 'select_year'
+	$('#select_year').on('change', year_change_handler);
 }
 
 function year_change_handler(e) {
 	var _DEBUG_HOOK = 0;
+	console.log("In 'year' on-change handler.");
 }
 
 // Populate the pick-lists, given the selected sets of countlocs and counts
@@ -30,7 +55,8 @@ function populate_pick_lists(countlocs, counts) {
 	var towns = _.map(countlocs, function(e) { return e.properties.town; });
 	var towns_uniq = _.uniq(towns);
 	towns_uniq = towns_uniq.sort();
-	$('#select_town').empty();
+	
+	$('#select_town').append(new Option("All", "All"));
 	towns_uniq.forEach(function(town) {
 		$('#select_town').append(new Option(town, town));
 	});
@@ -40,7 +66,7 @@ function populate_pick_lists(countlocs, counts) {
 	var years_uniq = _.uniq(years);
 	// Reverse list of years, latest year appears at top-of-list
 	years_uniq = years_uniq.sort().reverse();
-	$('#select_year').empty();
+	$('#select_year').append(new Option("All", "All"));
 	years_uniq.forEach(function(year) {
 		$('#select_year').append(new Option(year, year));
 	});
@@ -103,8 +129,8 @@ function initialize() {
 		populate_pick_lists(countlocs_features, counts_properties);
 		
 		// Bind on-change event handler(s) for pick-list controls
-		$('#select_town').change(town_change_handler);
-		$('#select_year').change(year_change_handler);
+		$('#select_town').on('change', town_change_handler);
+		$('#select_year').on('change', year_change_handler);
 
 		main_app();
 	});
