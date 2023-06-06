@@ -7,9 +7,6 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Complete GeoJSON 'blob' for count locations
-var countlocs_geojson = {};
-
 // Arrays of GeoJSON features for count locations and counts
 var countlocs_features = [],
     counts_features = [];
@@ -29,8 +26,6 @@ function main_app() {
 	
 	////////////////////////////////////
 	// Add count locations to map
-	
-	
 	var geojsonMarkerOptions = {
 		radius: 3,
 		fillColor: "#ff7800",
@@ -39,7 +34,7 @@ function main_app() {
 		opacity: 1,
 		fillOpacity: 0.8
 	};
-	const countlocs_layer =  L.geoJSON(countlocs_geojson, {
+	const countlocs_layer =  L.geoJSON(countlocs_features, {
 		pointToLayer: function (feature, latlng) {
 			return L.circleMarker(latlng, geojsonMarkerOptions);
 		}
@@ -60,10 +55,7 @@ function initialize() {
         if (ok === false) {
             alert("One or more requests to load data failed. Exiting application.");
             return; 
-        }
-		// The following line is probably not needed
-		countlocs_geojson = bp_countlocs; 
-		
+        } 
 		countlocs_features = bp_countlocs[0].features;
 		
 		// Note: the count data for each count 'feature' is found in counts[i].properties;
@@ -73,6 +65,7 @@ function initialize() {
 		counts_features.forEach(function(feature) {
 			counts_features.push(feature.properties);
 		});
+		
 		// Convert JSON arrays to Danfo data frames
 		countlocs_df = new dfd.DataFrame(countlocs_features);
 		counts_df = new dfd.DataFrame(counts_features);
