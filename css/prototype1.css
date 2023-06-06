@@ -2,6 +2,10 @@
 	font-family:"Trebuchet MS","sans-serif";
 }
 
+#controls {
+	margin-bottom: 10px;
+}
+
 #map { 
 	height: 600px; 
 	width:  80%;
