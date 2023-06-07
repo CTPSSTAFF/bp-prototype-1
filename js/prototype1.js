@@ -17,17 +17,14 @@ var countlocs_df = {},
 	
 // Set extent of leaflet map based on bounding box of bp_loc_ids
 function set_map_extent(loc_ids) {
-	var _DEBUG_HOOK = 0;
-	
 	// Compute bounding box of features for the given set of loc_ids
 	//        1. get feature for each loc_id, and get coordinates from italics
 	//        2. get bounding box (minX, minY, maxX, maxY) from that 
-	
-	var xcoords = [], ycoords = [], minx, miny, maxx, maxy;
+	var xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
 	
 	loc_ids.forEach(function(loc_id) {
 		var feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
-		// Guard for error in referential integrity in DB
+		// Guard for referential integrity error in DB
 		if (feature == null) {
 			console.log('Referential integrity issue with loc_id ' + loc_id);
 		} else {
@@ -39,15 +36,11 @@ function set_map_extent(loc_ids) {
 	miny = _.min(ycoords);
 	maxx = _.max(xcoords);
 	maxy = _.max(ycoords);
-	
-	var corner1 = L.latLng(miny, minx),
-	    corner2 = L.latLng(maxy, maxx);
-	var bounds  = L.latLngBounds(corner1, corner2);
-	
+	corner1 = L.latLng(miny, minx);
+	corner2 = L.latLng(maxy, maxx);
+	bounds  = L.latLngBounds(corner1, corner2);
 	map.fitBounds(bounds);
-	
-	_DEBUG_HOOK = 1;
-}
+} 
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
 function counts_to_countlocs(counts) {
@@ -57,11 +50,12 @@ function counts_to_countlocs(counts) {
 }
 	
 // On-change event handlers for pick-lists
+// #1 on-change event handler for towns
 function town_change_handler(e) {
-	var town, filter_func, counts_for_town, years, years_uniq;
+	var town, filter_func, counts_for_town, years, years_uniq, town_countlocs;
 	
-	town = $( "#select_town" ).val();
-	// Find years for which we have counts for the town
+	town = $("#select_town").val();
+	// Find years for which we have counts for the given town
 	// First, find all counts for town; then find years of all these counts
 	if (town !== "All") {
 		filter_func = function(c) { return c.municipality == town; };
@@ -84,17 +78,44 @@ function town_change_handler(e) {
 	// Re-enable on-change event handler for 'select_year'
 	$('#select_year').on('change', year_change_handler);
 	
-	var town_countlocs = counts_to_countlocs(counts_for_town);
+	town_countlocs = counts_to_countlocs(counts_for_town);
 	set_map_extent(town_countlocs);
 }
-
+// #2 on-change event handler for years
 function year_change_handler(e) {
-	var _DEBUG_HOOK = 0;
-	console.log("In 'year' on-change handler.");
+	var year, filter_func, counts_for_year, towns, towns_uniq, year_countlocs;
+	
+	year = $("#select_year").val();
+	// Find towns for which we have counts for the given year
+	// First, find all counts for year; then find towns of all these counts
+	if (year !== "All") {
+		filter_func = function(c) { return c.count_date.substr(0,4) == year; };
+	} else {
+		filter_func = function(c) { return true; };
+	}
+	counts_for_year = _.filter(counts, filter_func);
+
+	towns =  _.map(counts_for_year, function(c) { return c.municipality; });
+	towns_uniq = _.uniq(towns);
+	towns_uniq = towns_uniq.sort();
+	
+	// Disable on-change event handler for 'select_town'
+	$('#select_town').off()
+	// Clear-out, and populate pick list
+	$('#select_town').empty();	
+	
+	towns_uniq.forEach(function(town) {
+		$('#select_town').append(new Option(town, town));
+	});
+	// Re-enable on-change event handler for 'select_town'
+	$('#select_town').on('change', town_change_handler);	
+	
+	year_countlocs = counts_to_countlocs(counts_for_year);
+	set_map_extent(year_countlocs);
 }
 
-// Populate the pick-lists, given the selected sets of countlocs and counts
-function populate_pick_lists(countlocs, counts) {
+// Populate the pick-lists with their initial values, based on countlocs and counts
+function initialize_pick_lists(countlocs, counts) {
 	// Towns pick-list
 	var towns = _.map(countlocs, function(e) { return e.properties.town; });
 	var towns_uniq = _.uniq(towns);
@@ -165,7 +186,7 @@ function initialize() {
 		counts_df = new dfd.DataFrame(counts);
 		
 		// Populate pick-lists with initial values
-		populate_pick_lists(countlocs, counts);
+		initialize_pick_lists(countlocs, counts);
 		
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').on('change', town_change_handler);
