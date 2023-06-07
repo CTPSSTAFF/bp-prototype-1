@@ -27,17 +27,26 @@ function set_map_extent(loc_ids) {
 	
 	loc_ids.forEach(function(loc_id) {
 		var feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
-		xcoords = feature.geometry.coordinates[0];
-		ycoords = feature.geometry.coordinates[1];
+		// Guard for error in referential integrity in DB
+		if (feature == null) {
+			console.log('Referential integrity issue with loc_id ' + loc_id);
+		} else {
+			xcoords.push(feature.geometry.coordinates[0]);
+			ycoords.push(feature.geometry.coordinates[1]);
+		}
 	});
 	minx = _.min(xcoords);
 	miny = _.min(ycoords);
 	maxx = _.max(xcoords);
-	maxy = _.max(ycoords):
+	maxy = _.max(ycoords);
 	
-	// Work in progress
+	var corner1 = L.latLng(miny, minx),
+	    corner2 = L.latLng(maxy, maxx);
+	var bounds  = L.latLngBounds(corner1, corner2);
 	
-	_DEBUG_HOOK = 2;
+	map.fitBounds(bounds);
+	
+	_DEBUG_HOOK = 1;
 }
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
