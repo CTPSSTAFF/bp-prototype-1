@@ -7,7 +7,7 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Arrays of GeoJSON features for count locations (features) and counts (just properties of these non-features)
+// Arrays of GeoJSON features for count locations (features) and counts (the properties of these non-features)
 var countlocs = [],
     counts = [];
 	
@@ -39,7 +39,7 @@ function set_map_extent(loc_ids) {
 	corner1 = L.latLng(miny, minx);
 	corner2 = L.latLng(maxy, maxx);
 	bounds  = L.latLngBounds(corner1, corner2);
-	map.fitBounds(bounds);
+	map.flyToBounds(bounds);
 } 
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
@@ -146,10 +146,10 @@ function main_app() {
 	
 	// Add all count locations to map
 	var geojsonMarkerOptions = {
-		radius: 3,
+		radius: 3.5,
 		fillColor: "#ff7800",
-		color: "#000",
-		weight: 1,
+		color: "#000", 
+		weight: 0.5,
 		opacity: 1,
 		fillOpacity: 0.8
 	};
