@@ -153,11 +153,16 @@ function main_app() {
 		opacity: 1,
 		fillOpacity: 0.8
 	};
+	// TO DO: Custom marker icon AND code to resize icon in zoom event handler
 	const countlocs_layer =  L.geoJSON(countlocs, {
 		pointToLayer: function (feature, latlng) {
-			return L.circleMarker(latlng, geojsonMarkerOptions);
+			var marker, content;
+			content = 'Hello from countloc ' + feature.properties.loc_id;
+			marker = L.marker(latlng).addTo(map).bindPopup(content);
+			// marker = L.circleMarker(latlng, geojsonMarkerOptions).addTo(map).bindPopup(content);
+			return marker;
 		}
-	}).addTo(map);
+	}); 
 } // main_app()
 
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
