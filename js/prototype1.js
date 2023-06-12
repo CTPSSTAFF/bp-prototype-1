@@ -112,6 +112,20 @@ function year_change_handler(e) {
 	
 	year_countlocs = counts_to_countlocs(counts_for_year);
 	set_map_extent(year_countlocs);
+	
+}
+
+// 'Search' button click event handler
+function search_handler(e) {
+	// TBD: Harvest selected town (if any) and year (if any)
+	//      Query counts
+	//      Set map extent
+	return;
+}
+
+// 'Reset' button click event handler
+function reset_handler(e) {
+	return; // Stub for now
 }
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
@@ -196,6 +210,10 @@ function initialize() {
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').on('change', town_change_handler);
 		$('#select_year').on('change', year_change_handler);
+		
+		// Bind event-handlers for 'Search' and 'Reset' buttons
+		$('#search').on('click', search_handler);
+		$('#reset').on('click', reset_handler);
 
 		main_app();
 	});
