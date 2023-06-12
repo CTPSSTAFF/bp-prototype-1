@@ -78,8 +78,8 @@ function town_change_handler(e) {
 	// Re-enable on-change event handler for 'select_year'
 	$('#select_year').on('change', year_change_handler);
 	
-	town_countlocs = counts_to_countlocs(counts_for_town);
-	set_map_extent(town_countlocs);
+	// town_countlocs = counts_to_countlocs(counts_for_town);
+	// set_map_extent(town_countlocs);
 }
 // #2 on-change event handler for years
 function year_change_handler(e) {
@@ -110,8 +110,8 @@ function year_change_handler(e) {
 	// Re-enable on-change event handler for 'select_town'
 	$('#select_town').on('change', town_change_handler);	
 	
-	year_countlocs = counts_to_countlocs(counts_for_year);
-	set_map_extent(year_countlocs);
+	// year_countlocs = counts_to_countlocs(counts_for_year);
+	// set_map_extent(year_countlocs);
 	
 }
 
@@ -120,6 +120,28 @@ function search_handler(e) {
 	// TBD: Harvest selected town (if any) and year (if any)
 	//      Query counts
 	//      Set map extent
+	var town, year, town_filter_func, year_filter_func, filtered_counts, selected_countlocs;
+	
+	town = $('#select_town').val();
+	year = $('#select_year').val();
+	
+	if (town != 'All') {
+		town_filter_func = function(count) { return count.municipality == town; };
+	} else {
+		town_filter_func = function(count) { return true; };
+	}
+	filtered_counts = _.filter(counts, town_filter_func);
+	
+	if (year != 'All') {
+		year_filter_func = function(count) { return count.count_date.substr(0,4) == year; };
+	} else {
+		year_filter_func = function(count) { return true; };
+	}
+	filtered_counts = _.filter(filtered_counts, year_filter_func);
+	
+	selected_countlocs = counts_to_countlocs(filtered_counts);
+	set_map_extent(selected_countlocs);
+	
 	return;
 }
 
