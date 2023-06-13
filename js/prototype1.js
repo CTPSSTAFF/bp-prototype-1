@@ -156,7 +156,11 @@ function main_app() {
 	const countlocs_layer =  L.geoJSON(countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
-			content = 'Location ID = ' + feature.properties.loc_id
+			content = 'Location ID = ' + feature.properties.loc_id;
+			// DEBUG 
+			if (feature.properties.loc_id == '20111') {
+				console.log('Found it!');
+			}
 			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
 			marker = L.marker(latlng);
 			marker.bindPopup(content);
