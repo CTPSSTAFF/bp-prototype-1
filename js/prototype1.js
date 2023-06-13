@@ -49,8 +49,7 @@ function counts_to_countlocs(counts) {
 	return bp_loc_ids;
 }
 	
-// On-change event handlers for pick-lists
-// #1 on-change event handler for towns
+// On-change event handler for towns
 function town_change_handler(e) {
 	var town, filter_func, counts_for_town, years, years_uniq, town_countlocs;
 	
@@ -81,7 +80,7 @@ function town_change_handler(e) {
 	town_countlocs = counts_to_countlocs(counts_for_town);
 	set_map_extent(town_countlocs);
 }
-// #2 on-change event handler for years
+// On-change event handler for years
 function year_change_handler(e) {
 	var year, filter_func, counts_for_year, towns, towns_uniq, year_countlocs;
 	
@@ -112,6 +111,10 @@ function year_change_handler(e) {
 	
 	year_countlocs = counts_to_countlocs(counts_for_year);
 	set_map_extent(year_countlocs);
+}
+
+function reset_handler(e) {
+	// Stub, for now
 }
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
@@ -200,6 +203,9 @@ function initialize() {
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').on('change', town_change_handler);
 		$('#select_year').on('change', year_change_handler);
+		
+		// Bind on-change event handler for 'reset' button 
+		$('#reset').on('click', reset_handler);
 
 		main_app();
 	});
