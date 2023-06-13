@@ -57,7 +57,7 @@ function town_change_handler(e) {
 	town = $("#select_town").val();
 	// Find years for which we have counts for the given town
 	// First, find all counts for town; then find years of all these counts
-	if (town !== "All") {
+	if (town !== "Any") {
 		filter_func = function(c) { return c.municipality == town; };
 	} else {
 		filter_func = function(c) { return true; };
@@ -88,7 +88,7 @@ function year_change_handler(e) {
 	year = $("#select_year").val();
 	// Find towns for which we have counts for the given year
 	// First, find all counts for year; then find towns of all these counts
-	if (year !== "All") {
+	if (year !== "Any") {
 		filter_func = function(c) { return c.count_date.substr(0,4) == year; };
 	} else {
 		filter_func = function(c) { return true; };
@@ -121,7 +121,7 @@ function initialize_pick_lists(countlocs, counts) {
 	var towns_uniq = _.uniq(towns);
 	towns_uniq = towns_uniq.sort();
 	
-	$('#select_town').append(new Option("All", "All"));
+	$('#select_town').append(new Option("Any", "Any"));
 	towns_uniq.forEach(function(town) {
 		$('#select_town').append(new Option(town, town));
 	});
@@ -131,7 +131,7 @@ function initialize_pick_lists(countlocs, counts) {
 	var years_uniq = _.uniq(years);
 	// Reverse list of years, latest year appears at top-of-list
 	years_uniq = years_uniq.sort().reverse();
-	$('#select_year').append(new Option("All", "All"));
+	$('#select_year').append(new Option("Any", "Any"));
 	years_uniq.forEach(function(year) {
 		$('#select_year').append(new Option(year, year));
 	});
