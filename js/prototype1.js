@@ -78,8 +78,8 @@ function town_change_handler(e) {
 	// Re-enable on-change event handler for 'select_year'
 	$('#select_year').on('change', year_change_handler);
 	
-	// town_countlocs = counts_to_countlocs(counts_for_town);
-	// set_map_extent(town_countlocs);
+	town_countlocs = counts_to_countlocs(counts_for_town);
+	set_map_extent(town_countlocs);
 }
 // #2 on-change event handler for years
 function year_change_handler(e) {
@@ -110,44 +110,8 @@ function year_change_handler(e) {
 	// Re-enable on-change event handler for 'select_town'
 	$('#select_town').on('change', town_change_handler);	
 	
-	// year_countlocs = counts_to_countlocs(counts_for_year);
-	// set_map_extent(year_countlocs);
-	
-}
-
-// 'Search' button click event handler
-function search_handler(e) {
-	// TBD: Harvest selected town (if any) and year (if any)
-	//      Query counts
-	//      Set map extent
-	var town, year, town_filter_func, year_filter_func, filtered_counts, selected_countlocs;
-	
-	town = $('#select_town').val();
-	year = $('#select_year').val();
-	
-	if (town != 'All') {
-		town_filter_func = function(count) { return count.municipality == town; };
-	} else {
-		town_filter_func = function(count) { return true; };
-	}
-	filtered_counts = _.filter(counts, town_filter_func);
-	
-	if (year != 'All') {
-		year_filter_func = function(count) { return count.count_date.substr(0,4) == year; };
-	} else {
-		year_filter_func = function(count) { return true; };
-	}
-	filtered_counts = _.filter(filtered_counts, year_filter_func);
-	
-	selected_countlocs = counts_to_countlocs(filtered_counts);
-	set_map_extent(selected_countlocs);
-	
-	return;
-}
-
-// 'Reset' button click event handler
-function reset_handler(e) {
-	return; // Stub for now
+	year_countlocs = counts_to_countlocs(counts_for_year);
+	set_map_extent(year_countlocs);
 }
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
@@ -189,16 +153,16 @@ function main_app() {
 		opacity: 1,
 		fillOpacity: 0.8
 	};
-	// TO DO: Custom marker icon AND code to resize icon in zoom event handler
 	const countlocs_layer =  L.geoJSON(countlocs, {
 		pointToLayer: function (feature, latlng) {
-			var marker, content;
-			content = 'Hello from countloc ' + feature.properties.loc_id;
-			marker = L.marker(latlng).addTo(map).bindPopup(content);
-			// marker = L.circleMarker(latlng, geojsonMarkerOptions).addTo(map).bindPopup(content);
-			return marker;
+			var content, marker;
+			content = 'Location ID = ' + feature.properties.loc_id
+			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
+			marker = L.marker(latlng);
+			marker.bindPopup(content);
+			marker.addTo(map);
 		}
-	}); 
+	});
 } // main_app()
 
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
@@ -232,10 +196,6 @@ function initialize() {
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town').on('change', town_change_handler);
 		$('#select_year').on('change', year_change_handler);
-		
-		// Bind event-handlers for 'Search' and 'Reset' buttons
-		$('#search').on('click', search_handler);
-		$('#reset').on('click', reset_handler);
 
 		main_app();
 	});
