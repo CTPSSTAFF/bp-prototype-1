@@ -12,7 +12,7 @@ var countlocs = [],
     counts = [];
 	
 // Arrays of GeoJSON features for current 'selection set' of count locations and counts
-var selected_count_locs = [],
+var selected_countlocs = [],
     selected_counts = [];
 	
 // Danfo dataframes for count locations and counts - currently unused
@@ -28,9 +28,15 @@ function set_map_extent(loc_ids) {
 	
 	loc_ids.forEach(function(loc_id) {
 		var feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
-		// Guard for referential integrity error in DB
+		// Guard for referential integrity error in DB or bad feature geometry
 		if (feature == null) {
 			console.log('Referential integrity issue with loc_id ' + loc_id);
+		} else if (feature.geometry == null ||
+		           feature.geometry.coordinates == null ||
+				   feature.geometry.coordinates.length != 2 ||
+				   feature.geometry.coordinates[0] == 0 || 
+				   feature.geometry.coordinates[1] == 0) {
+			console.log('Problem with geometry for loc_id ' + loc_id);
 		} else {
 			xcoords.push(feature.geometry.coordinates[0]);
 			ycoords.push(feature.geometry.coordinates[1]);
@@ -52,6 +58,72 @@ function counts_to_countlocs(counts) {
 	bp_loc_ids = _.uniq(bp_loc_ids);
 	return bp_loc_ids;
 }
+
+function pick_list_handler(e) {
+	var _DEBUG_HOOK = 0;
+	var pick_list,   // ID of pick list that triggered event
+	    town, year;
+	var towns = [], towns_uniq = [], years = [], years_uniq = [];
+	
+	pick_list = e.target.id; 
+	town = $("#select_town").val();
+	year = $("#select_year").val();
+	
+	// 1. apply whatever filters have been selected;
+	// 2. re-calcuate selected_counts;
+	// 3. re-populate 'other' select list if needed
+	// 4. pan/zoom map
+	
+	if (town !== "Any") {
+		filter_func = function(count) { return count.municipality == town; };
+	} else {
+		filter_func = function(count) { return true; };
+	}	
+	selected_counts = _.filter(counts, filter_func);
+	
+	if (year !== "Any") {
+		filter_func = function(count) { return count.count_date.substr(0,4) == year; };
+	} else {
+		filter_func = function(count) { return true; };
+	}
+    selected_counts = _.filter(selected_counts, filter_func);	
+	
+	if (pick_list == "select_town") {
+		years = _.map(selected_counts, function(count) { return count.count_date.substr(0,4); });
+		years_uniq = _.uniq(years);
+		years_uniq = years_uniq.sort().reverse();
+		// Disable on-change event handler for 'select_year'
+		$('#select_year').off()
+		// Clear-out, and populate pick list
+		$('#select_year').empty();
+		// $('#select_year').append(new Option('Any', 'Any'));
+		years_uniq.forEach(function(year) {
+			$('#select_year').append(new Option(year, year));
+		});
+		// Re-enable on-change event handler for 'select_year'
+		$('#select_year').on('change', pick_list_handler);		
+	} else if (pick_list == "select_year") {
+		towns =  _.map(selected_counts, function(count) { return count.municipality; });
+		towns_uniq = _.uniq(towns);
+		towns_uniq = towns_uniq.sort();
+		// Disable on-change event handler for 'select_town'
+		$('#select_town').off()
+		// Clear-out, and populate pick list
+		$('#select_town').empty();	
+		// $('#select_town').append(new Option('Any', 'Any'));
+		towns_uniq.forEach(function(town) {
+			$('#select_town').append(new Option(town, town));
+		});
+		// Re-enable on-change event handler for 'select_town'
+		$('#select_town').on('change', town_change_handler);
+	} else {
+		// ASSERT('Something is rotten in the State of Denmark.');
+		console.log('Something is rotten in the State of Denmark.');
+	}
+	
+	selected_countlocs = counts_to_countlocs(selected_counts);
+	set_map_extent(selected_countlocs);
+} // pick_list_handler
 	
 // On-change event handler for towns
 function town_change_handler(e) {
@@ -61,13 +133,13 @@ function town_change_handler(e) {
 	// Find years for which we have counts for the given town
 	// First, find all counts for town; then find years of all these counts
 	if (town !== "Any") {
-		filter_func = function(c) { return c.municipality == town; };
+		filter_func = function(count) { return count.municipality == town; };
 	} else {
-		filter_func = function(c) { return true; };
+		filter_func = function(count) { return true; };
 	}
-	counts_for_town = _.filter(counts, filter_func);
+	selected_counts = _.filter(selected_counts, filter_func);
 
-	years = _.map(counts_for_town, function(c) { return c.count_date.substr(0,4); });
+	years = _.map(selected_counts, function(c) { return c.count_date.substr(0,4); });
 	years_uniq = _.uniq(years);
 	years_uniq = years_uniq.sort().reverse();
 	
@@ -119,7 +191,12 @@ function year_change_handler(e) {
 } // on-change handler for 'years'
 
 function reset_handler(e) {
-	// Stub, for now
+	/*
+	selected_countlocs = [],
+    selected_counts = [];
+	initialize_pick_lists(countlocs, counts);
+	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
+	*/
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
@@ -198,16 +275,23 @@ function initialize() {
 			counts.push(feature.properties);
 		});
 		
+		// Initialize 'selection sets' for countlocs and counts
+		selected_countlocs = _.filter(countlocs)
+		selected_counts = _.filter(counts);
+		
 		// Convert JSON arrays to Danfo data frames - not yet used in app
-		countlocs_df = new dfd.DataFrame(countlocs);
-		counts_df = new dfd.DataFrame(counts);
+		//
+		// countlocs_df = new dfd.DataFrame(countlocs);
+		// counts_df = new dfd.DataFrame(counts);
 		
 		// Populate pick-lists with initial values
 		initialize_pick_lists(countlocs, counts);
 		
 		// Bind on-change event handler(s) for pick-list controls
-		$('#select_town').on('change', town_change_handler);
-		$('#select_year').on('change', year_change_handler);
+		$('#select_town,#select_year').on('change', pick_list_handler);
+		
+		// $('#select_town').on('change', town_change_handler);
+		// $('#select_year').on('change', year_change_handler);
 		
 		// Bind on-change event handler for 'reset' button 
 		$('#reset').on('click', reset_handler);
