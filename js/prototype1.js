@@ -11,7 +11,11 @@ var map = {};
 var countlocs = [],
     counts = [];
 	
-// Danfo dataframes for count locations and counts
+// Arrays of GeoJSON features for current 'selection set' of count locations and counts
+var selected_count_locs = [],
+    selected_counts = [];
+	
+// Danfo dataframes for count locations and counts - currently unused
 var countlocs_df = {},
     counts_df = {};
 	
@@ -40,7 +44,7 @@ function set_map_extent(loc_ids) {
 	corner2 = L.latLng(maxy, maxx);
 	bounds  = L.latLngBounds(corner1, corner2);
 	map.flyToBounds(bounds);
-} 
+} // set_map_extent
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
 function counts_to_countlocs(counts) {
@@ -79,7 +83,8 @@ function town_change_handler(e) {
 	
 	town_countlocs = counts_to_countlocs(counts_for_town);
 	set_map_extent(town_countlocs);
-}
+} // on-change handler for 'towns'
+
 // On-change event handler for years
 function year_change_handler(e) {
 	var year, filter_func, counts_for_year, towns, towns_uniq, year_countlocs;
@@ -111,11 +116,11 @@ function year_change_handler(e) {
 	
 	year_countlocs = counts_to_countlocs(counts_for_year);
 	set_map_extent(year_countlocs);
-}
+} // on-change handler for 'years'
 
 function reset_handler(e) {
 	// Stub, for now
-}
+} // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
 function initialize_pick_lists(countlocs, counts) {
@@ -170,7 +175,7 @@ function main_app() {
 			marker.addTo(map);
 		}
 	});
-} // main_app()
+} // main_app
 
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
     countsURL = 'data/json/bp_counts.json';
@@ -209,4 +214,4 @@ function initialize() {
 
 		main_app();
 	});
-} // initialize()
+} // initialize
