@@ -191,12 +191,10 @@ function year_change_handler(e) {
 } // on-change handler for 'years'
 
 function reset_handler(e) {
-	/*
 	selected_countlocs = [],
     selected_counts = [];
 	initialize_pick_lists(countlocs, counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
-	*/
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on countlocs and counts
@@ -206,6 +204,7 @@ function initialize_pick_lists(countlocs, counts) {
 	var towns_uniq = _.uniq(towns);
 	towns_uniq = towns_uniq.sort();
 	
+	$('#select_town').empty();
 	$('#select_town').append(new Option("Any", "Any"));
 	towns_uniq.forEach(function(town) {
 		$('#select_town').append(new Option(town, town));
@@ -216,6 +215,8 @@ function initialize_pick_lists(countlocs, counts) {
 	var years_uniq = _.uniq(years);
 	// Reverse list of years, latest year appears at top-of-list
 	years_uniq = years_uniq.sort().reverse();
+	
+	$('#select_year').empty();
 	$('#select_year').append(new Option("Any", "Any"));
 	years_uniq.forEach(function(year) {
 		$('#select_year').append(new Option(year, year));
