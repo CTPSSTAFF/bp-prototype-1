@@ -62,7 +62,6 @@ function counts_to_countlocs(counts) {
 }
 
 function pick_list_handler(e) {
-	var _DEBUG_HOOK = 0;
 	var pick_list,   // ID of pick list that triggered event
 	    town, year;
 	var towns = [], towns_uniq = [], years = [], years_uniq = [];
@@ -223,7 +222,7 @@ function initialize_pick_lists(countlocs, counts) {
 	years_uniq.forEach(function(year) {
 		$('#select_year').append(new Option(year, year));
 	});
-}
+} // initialize_pick_lists
 
 function main_app() {
 	map = L.map('map').setView([regionCenterLat, regionCenterLng], initialZoom);
@@ -282,7 +281,6 @@ function validate_integrity_of_countloc_geometry(countlocs) {
 // Checks that the loc_id for each 'count' is found in the 'count locations' features
 function validate_referential_integrity(countlocs, counts) {
 	counts.forEach(function(count) {
-		var _DEBUG_HOOK = 0;
 		var count_id, bp_loc_id, feature, msg;
 		count_id = count.count_id;
 		bp_loc_id = count.bp_loc_id;
