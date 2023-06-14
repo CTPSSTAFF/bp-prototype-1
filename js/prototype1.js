@@ -127,8 +127,11 @@ function pick_list_handler(e) {
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
 	set_map_extent(selected_countloc_ids);
 } // pick_list_handler
-	
-// On-change event handler for towns - POSSIBLY NOW OBSOLETE
+
+/******************************************************************************
+// The code below is currently commented out, as it is POSSIBLY OBSOLETE
+//
+// On-change event handler for towns 
 function town_change_handler(e) {
 	var town, filter_func, counts_for_town, years, years_uniq, town_countlocs;
 	
@@ -160,7 +163,7 @@ function town_change_handler(e) {
 	set_map_extent(town_countloc_ids);
 } // on-change handler for 'towns'
 
-// On-change event handler for years - POSSIBLY NOW OBSOLETE
+// On-change event handler for years
 function year_change_handler(e) {
 	var year, filter_func, counts_for_year, towns, towns_uniq, year_countlocs;
 	
@@ -192,6 +195,7 @@ function year_change_handler(e) {
 	year_countloc_ids = counts_to_countloc_ids(counts_for_year);
 	set_map_extent(year_countloc_ids);
 } // on-change handler for 'years'
+******************************************************************************/
 
 function reset_handler(e) {
 	selected_countlocs = [],
