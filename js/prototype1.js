@@ -1,6 +1,6 @@
 // 'Getting started' code taken from leaflet.js website, and modified
 
-var bDebug = true; // Global debug toggle
+var bDebug = false; // Global debug toggle
 
 var regionCenterLat = 42.345111165; 
 var regionCenterLng = -71.124736685; 
@@ -55,7 +55,7 @@ function set_map_extent(loc_ids) {
 } // set_map_extent
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
-function counts_to_countlocs(counts) {
+function counts_to_countloc_ids(counts) {
 	var bp_loc_ids = _.map(counts, function(c) { return c.bp_loc_id; });
 	bp_loc_ids = _.uniq(bp_loc_ids);
 	return bp_loc_ids;
@@ -88,6 +88,8 @@ function pick_list_handler(e) {
 		filter_func = function(count) { return true; };
 	}
     selected_counts = _.filter(selected_counts, filter_func);	
+	
+	var _DEBUG_TOGGLE = 0;
 	
 	if (pick_list == "select_town") {
 		years = _.map(selected_counts, function(count) { return count.count_date.substr(0,4); });
@@ -122,8 +124,8 @@ function pick_list_handler(e) {
 		console.log('Something is rotten in the State of Denmark.');
 	}
 	
-	selected_countlocs = counts_to_countlocs(selected_counts);
-	set_map_extent(selected_countlocs);
+	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
+	set_map_extent(selected_countloc_ids);
 } // pick_list_handler
 	
 // On-change event handler for towns - POSSIBLY NOW OBSOLETE
@@ -154,8 +156,8 @@ function town_change_handler(e) {
 	// Re-enable on-change event handler for 'select_year'
 	$('#select_year').on('change', year_change_handler);
 	
-	town_countlocs = counts_to_countlocs(counts_for_town);
-	set_map_extent(town_countlocs);
+	town_countloc_ids = counts_to_countloc_ids(counts_for_town);
+	set_map_extent(town_countloc_ids);
 } // on-change handler for 'towns'
 
 // On-change event handler for years - POSSIBLY NOW OBSOLETE
@@ -187,8 +189,8 @@ function year_change_handler(e) {
 	// Re-enable on-change event handler for 'select_town'
 	$('#select_town').on('change', town_change_handler);	
 	
-	year_countlocs = counts_to_countlocs(counts_for_year);
-	set_map_extent(year_countlocs);
+	year_countloc_ids = counts_to_countloc_ids(counts_for_year);
+	set_map_extent(year_countloc_ids);
 } // on-change handler for 'years'
 
 function reset_handler(e) {
