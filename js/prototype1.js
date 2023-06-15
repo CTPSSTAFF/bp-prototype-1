@@ -2,22 +2,31 @@
 
 var bDebug = false; // Global debug toggle
 
-var regionCenterLat = 42.345111165; 
-var regionCenterLng = -71.124736685; 
+// Innitial center and zoom level for map - approx center of MPO area
+var regionCenterLat = 42.38762765728668; 
+var regionCenterLng = -71.14615053347856; 
 var initialZoom = 11; 
 
 // Leaflet 'map' Object
 var map = {};
 
-// Arrays of GeoJSON features for count locations (features) and counts (the properties of these non-features)
-var countlocs = [],
-    counts = [];
+// Leaflet layer objects for all count locations, 'selected' count locations, and 'un-selected' count locations
+var all_countlocs_layer = {},
+    selected_countlocs_layer = {},
+	unselectted_countlocs_layer = {};
+
+// Arrays of GeoJSON features for ALL count locations (features) and ALL counts (the properties of these non-features)
+var all_countlocs = [],
+    all_counts = [];
 	
 // Arrays of GeoJSON features for current 'selection set' of count locations and counts
 var selected_countlocs = [],
     selected_counts = [];
 	
-// Danfo dataframes for count locations and counts - currently unused
+// Arrays of GeoJSON count location features NOT in the current 'selection' set
+var unselected_countlocs = [];
+	
+// Danfo dataframes for count locations and counts - CURRENTLY UNUSED
 var countlocs_df = {},
     counts_df = {};
 	
@@ -29,7 +38,7 @@ function set_map_extent(loc_ids) {
 	var xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
 	
 	loc_ids.forEach(function(loc_id) {
-		var feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
+		var feature = _.find(all_countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
 		// Guard for referential integrity error in DB or bad feature geometry
 		if (feature == null) {
 			console.log('Referential integrity issue with loc_id ' + loc_id);
@@ -62,17 +71,21 @@ function counts_to_countloc_ids(counts) {
 	return bp_loc_ids;
 }
 
+// On-change event handler for pick-lists of towns and years.
+// Aside from purely UI-related tasks, the primary job of 
+// this function is to compute the current 'selection set'
+// (and 'un-selection set') of count locations and counts.
 function pick_list_handler(e) {
 	var pick_list,   // ID of pick list that triggered event
-	    town, year;
-	var towns = [], towns_uniq = [], years = [], years_uniq = [];
+	    town, year,
+		towns = [], towns_uniq = [], years = [], years_uniq = [];
 	
 	pick_list = e.target.id; 
 	town = $("#select_town").val();
 	year = $("#select_year").val();
 	
-	// 1. apply whatever filters have been selected;
-	// 2. re-calcuate selected_counts;
+	// 1. apply whatever filters have been selected
+	// 2. re-calcuate selected_counts
 	// 3. re-populate 'other' select list if needed
 	// 4. pan/zoom map
 	
@@ -81,7 +94,7 @@ function pick_list_handler(e) {
 	} else {
 		filter_func = function(count) { return true; };
 	}	
-	selected_counts = _.filter(counts, filter_func);
+	selected_counts = _.filter(all_counts, filter_func);
 	
 	if (year !== "Any") {
 		filter_func = function(count) { return count.count_date.substr(0,4) == year; };
@@ -104,7 +117,7 @@ function pick_list_handler(e) {
 			$('#select_year').append(new Option(year, year));
 		});
 		// Re-enable on-change event handler for 'select_year'
-		$('#select_year').on('change', pick_list_handler);		
+		$('#select_year').on('change', pick_list_handler);
 	} else if (pick_list == "select_year") {
 		towns =  _.map(selected_counts, function(count) { return count.municipality; });
 		towns_uniq = _.uniq(towns);
@@ -118,13 +131,20 @@ function pick_list_handler(e) {
 			$('#select_town').append(new Option(town, town));
 		});
 		// Re-enable on-change event handler for 'select_town'
-		$('#select_town').on('change', town_change_handler);
+		$('#select_town').on('change', pick_list_handler);
 	} else {
-		// ASSERT('Something is rotten in the State of Denmark.');
-		console.log('Something is rotten in the State of Denmark.');
+		// ASSERT
+		console.log('Invalid pick-list ID: ' + pick_list);
+		return;
 	}
 	
+	// Compute 'selection sets' (and 'un-selection sets') of count locationas and counts
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
+	selected_countlocs = [];
+	selected_countloc_ids.forEach(function(loc_id) {
+		
+	});
+	
 	set_map_extent(selected_countloc_ids);
 } // pick_list_handler
 
@@ -132,15 +152,20 @@ function pick_list_handler(e) {
 function reset_handler(e) {
 	selected_countlocs = [],
     selected_counts = [];
-	initialize_pick_lists(countlocs, counts);
+	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
 } // on-click handler for 'reset'
 
-// Populate the pick-lists with their initial values, based on countlocs and counts
+// Populate the pick-lists with their initial values, based on all_countlocs and all_counts
+// Note on passed-in parms:
+// 		countlocs parameter == all_countlocs
+// 		counts parameter == all_counts
 function initialize_pick_lists(countlocs, counts) {
 	// Towns pick-list
-	var towns = _.map(countlocs, function(e) { return e.properties.town; });
-	var towns_uniq = _.uniq(towns);
+	var towns, towns_uniq, years, years_uniq;
+	
+	towns = _.map(countlocs, function(cl) { return cl.properties.town; });
+	towns_uniq = _.uniq(towns);
 	towns_uniq = towns_uniq.sort();
 	
 	$('#select_town').empty();
@@ -150,8 +175,8 @@ function initialize_pick_lists(countlocs, counts) {
 	});
 	
 	// Year pick-list
-	var years = _.map(counts, function(e) { return e.count_date.substr(0,4); });
-	var years_uniq = _.uniq(years);
+	years = _.map(counts, function(c) { return c.count_date.substr(0,4); });
+	years_uniq = _.uniq(years);
 	// Reverse list of years, latest year appears at top-of-list
 	years_uniq = years_uniq.sort().reverse();
 	
@@ -202,7 +227,7 @@ function initialize_map() {
 		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 	}).addTo(map);
 	
-	// Add all count locations to map
+	// Custom options for 'circle' marker for GeoJSON features - CURRENTLY UNUSED
 	var geojsonMarkerOptions = {
 		radius: 3.5,
 		fillColor: "#ff7800",
@@ -211,14 +236,12 @@ function initialize_map() {
 		opacity: 1,
 		fillOpacity: 0.8
 	};
-	const countlocs_layer =  L.geoJSON(countlocs, {
+	
+	// Add all count locations to map
+	all_countlocs_layer =  L.geoJSON(all_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
 			content = 'Location ID = ' + feature.properties.loc_id;
-			// DEBUG 
-			if (feature.properties.loc_id == '20111') {
-				console.log('Found it!');
-			}
 			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
 			marker = L.marker(latlng);
 			marker.bindPopup(content);
@@ -239,31 +262,31 @@ function initialize() {
             alert("One or more requests to load data failed. Exiting application.");
             return; 
         } 
-		countlocs = bp_countlocs[0].features;
+		all_countlocs = bp_countlocs[0].features;
 		
 		// Note: the count data for each count 'feature' is found in the 'properties'
 		//       list of each such count 'feature' 
 		bp_counts[0].features.forEach(function(feature) {
-			counts.push(feature.properties);
+			all_counts.push(feature.properties);
 		});
 		
 		// DIAGNOSTIC / DEBUG
 		if (bDebug == true) {
-			validate_integrity_of_countloc_geometry(countlocs);
-			validate_referential_integrity(countlocs, counts);	
+			validate_integrity_of_countloc_geometry(all_countlocs);
+			validate_referential_integrity(all_countlocs, all_counts);	
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
-		selected_countlocs = _.filter(countlocs)
-		selected_counts = _.filter(counts);
+		selected_countlocs = _.filter(all_countlocs)
+		selected_counts = _.filter(all_counts);
 		
 		// Convert JSON arrays to Danfo data frames - not yet used in app
 		//
-		// countlocs_df = new dfd.DataFrame(countlocs);
-		// counts_df = new dfd.DataFrame(counts);
+		// countlocs_df = new dfd.DataFrame(all_countlocs);
+		// counts_df = new dfd.DataFrame(all_counts);
 		
 		// Populate pick-lists with initial values
-		initialize_pick_lists(countlocs, counts);
+		initialize_pick_lists(all_countlocs, all_counts);
 		
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town,#select_year').on('change', pick_list_handler);
