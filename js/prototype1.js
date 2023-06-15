@@ -11,9 +11,14 @@ var initialZoom = 11;
 var map = {};
 
 // Leaflet layer objects for all count locations, 'selected' count locations, and 'un-selected' count locations
+// THIS MAY BE INCORRECT
 var all_countlocs_layer = {},
     selected_countlocs_layer = {},
 	unselected_countlocs_layer = {};
+	
+var all_countloc_markers = [],
+	selected_countloc_markers = [],
+    unselected_countloc_markers = [];
 	
 // Leaflet icon for 'selected' count locations
 // Credit to: https://github.com/pointhi/leaflet-color-markers
@@ -77,23 +82,35 @@ function update_map(loc_ids) {
 	
 	map.flyToBounds(bounds);
 	
-	if (map.hasLayer(all_countlocs_layer)) { map.removeLayer(all_countlocs_layer); }
-	if (map.hasLayer(selected_countlocs_layer)) { map.removeLayer(selected_countlocs_layer); }
-	if (map.hasLayer(unselected_countlocs_layer)) { map.removeLayer(unselected_countlocs_layer); }
+	// THE FOLLOWING LINE MAY NO LONGER BE NEEDED
+	// if (map.hasLayer(all_countlocs_layer)) { map.removeLayer(all_countlocs_layer); }
+	
+	// Remove markers for selected countlocs
+	var i;
+	for (i = 0; i < selected_countloc_markers.length; i++) {
+		map.removeLayer(selected_countloc_markers[i]);
+	}
+	selected_countloc_markers = [];
+	// Remove markers for un-selectec countlocs
+	for (i = 0; i < unselected_countloc_markers.length; i++) {
+		map.removeLayer(unselected_countloc_markers[i]);
+	}
+	unselected_countloc_markers = [];
 	
 	// Add SELECTED count locations to map
-	selected_countlocs_layer =  L.geoJSON(selected_countlocs, {
+	L.geoJSON(selected_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
 			content = 'Selected location ID = ' + feature.properties.loc_id;
-
 			marker = L.marker(latlng, { icon: selected_countloc_icon });
 			marker.bindPopup(content);
 			marker.addTo(map);
+			selected_countloc_markers.push(marker);
 		}
 	});
+	
 	// Add UN-SELECTED count locations to map
-	unselected_countlocs_layer =  L.geoJSON(unselected_countlocs, {
+	L.geoJSON(unselected_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
 			content = 'Un-selected location ID = ' + feature.properties.loc_id;
@@ -101,6 +118,7 @@ function update_map(loc_ids) {
 			marker = L.marker(latlng);
 			marker.bindPopup(content);
 			marker.addTo(map);
+			unselected_countloc_markers.push(marker);
 		}
 	});
 } // update_map
@@ -192,8 +210,35 @@ function pick_list_handler(e) {
 
 
 function reset_handler(e) {
-	selected_countlocs = [],
+	// Check this
     selected_counts = [];
+	
+	var i;
+	
+	selected_countlocs = [];
+	for (i = 0; i< selected_countloc_markers.length; i++) { 
+		map.removeLayer(selected_countloc_markers[i]);
+	}
+	selected_countloc_markers = [];
+	
+	uselected_countlocs = [];
+	for (i = 0; i< unselected_countloc_markers.length; i++) { 
+		map.removeLayer(unselected_countloc_markers[i]);
+	}
+	unselected_countloc_markers = [];
+	// Add all count locations to map
+	L.geoJSON(all_countlocs, {
+		pointToLayer: function (feature, latlng) {
+			var content, marker;
+			content = 'Location ID = ' + feature.properties.loc_id;
+			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
+			marker = L.marker(latlng);
+			marker.bindPopup(content);
+			marker.addTo(map);
+			unselected_countloc_markers.push(marker);
+		}
+	});
+	
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
 } // on-click handler for 'reset'
@@ -280,7 +325,7 @@ function initialize_map() {
 	};
 	
 	// Add all count locations to map
-	all_countlocs_layer =  L.geoJSON(all_countlocs, {
+	L.geoJSON(all_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
 			content = 'Location ID = ' + feature.properties.loc_id;
@@ -288,6 +333,7 @@ function initialize_map() {
 			marker = L.marker(latlng);
 			marker.bindPopup(content);
 			marker.addTo(map);
+			unselected_countloc_markers.push(marker);
 		}
 	});
 } // initialize_map
