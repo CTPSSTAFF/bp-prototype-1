@@ -1,6 +1,13 @@
-// 'Getting started' code taken from leaflet.js website, and modified
+// Prototype # of next-gen bike-ped counts web application
+//
+// Data: All data loaded from local GeoJSON files, 
+//       no interaction with backing DB server
+// Mapping platform: leaflet.json
+// Basemap: Open Street Map
+//
+// Author: Ben Krepp, bkrepp@ctps.org
 
-var bDebug = false; // Global debug toggle
+var bDebug = false; // Debug/diagnostics toggle
 
 // Innitial center and zoom level for map - approx center of MPO area
 var regionCenterLat = 42.38762765728668; 
@@ -10,17 +17,12 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Leaflet layer objects for all count locations, 'selected' count locations, and 'un-selected' count locations
-// THIS MAY BE INCORRECT
-var all_countlocs_layer = {},
-    selected_countlocs_layer = {},
-	unselected_countlocs_layer = {};
-	
+// Arrays of leaflet marker 'layers'
 var all_countloc_markers = [],
 	selected_countloc_markers = [],
     unselected_countloc_markers = [];
 	
-// Leaflet icon for 'selected' count locations
+// Leaflet icon for 'selected' count locations (un-selected locations use default marker icon)
 // Credit to: https://github.com/pointhi/leaflet-color-markers
 var selected_countloc_icon = new L.Icon({
 	iconUrl: 'img/marker-icon-gold.png',
@@ -39,7 +41,7 @@ var all_countlocs = [],
 var selected_countlocs = [],
     selected_counts = [];
 	
-// Arrays of GeoJSON count location features NOT in the current 'selection' set
+// Arrays of GeoJSON count location features NOT in the current 'selection set'
 var unselected_countlocs = [];
 	
 // update_map:
@@ -49,7 +51,7 @@ function update_map(loc_ids) {
 	// Compute bounding box of features for the given set of loc_ids
 	//        1. get feature for each loc_id, and get coordinates from italics
 	//        2. get bounding box (minX, minY, maxX, maxY) from that 
-	var xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
+	var i, xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
 	
 	loc_ids.forEach(function(loc_id) {
 		var feature = _.find(all_countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
@@ -81,19 +83,18 @@ function update_map(loc_ids) {
 	// THE FOLLOWING LINE MAY NO LONGER BE NEEDED
 	// if (map.hasLayer(all_countlocs_layer)) { map.removeLayer(all_countlocs_layer); }
 	
-	// Remove markers for selected countlocs
-	var i;
+	// Remove markers for selected count locations
 	for (i = 0; i < selected_countloc_markers.length; i++) {
 		map.removeLayer(selected_countloc_markers[i]);
 	}
 	selected_countloc_markers = [];
-	// Remove markers for un-selectec countlocs
+	// Remove markers for un-selectec count locations
 	for (i = 0; i < unselected_countloc_markers.length; i++) {
 		map.removeLayer(unselected_countloc_markers[i]);
 	}
 	unselected_countloc_markers = [];
 	
-	// Add SELECTED count locations to map
+	// Add SELECTED count locations to map, and cache them in 'selected_countloc_markers'
 	L.geoJSON(selected_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
@@ -104,8 +105,7 @@ function update_map(loc_ids) {
 			selected_countloc_markers.push(marker);
 		}
 	});
-	
-	// Add UN-SELECTED count locations to map
+	// Add UN-SELECTED count locations to map, and cache them in 'unselected_countloc_markers'
 	L.geoJSON(unselected_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
@@ -222,7 +222,9 @@ function reset_handler(e) {
 		map.removeLayer(unselected_countloc_markers[i]);
 	}
 	unselected_countloc_markers = [];
-	// Add all count locations to map
+	
+	// Add all count locations to map, and cache them in 'unselected_countloc_markers'
+	// All countlocs are 'un-selected' at reset
 	L.geoJSON(all_countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
@@ -321,7 +323,7 @@ function initialize() {
 			all_counts.push(feature.properties);
 		});
 		
-		// DIAGNOSTIC / DEBUG
+		// DIAGNOSTIC / DEBUG - requires loading of separate 'js/diagnostics.js' file
 		if (bDebug == true) {
 			validate_integrity_of_countloc_geometry(all_countlocs);
 			validate_referential_integrity(all_countlocs, all_counts);	
