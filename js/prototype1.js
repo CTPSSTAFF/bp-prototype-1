@@ -13,7 +13,18 @@ var map = {};
 // Leaflet layer objects for all count locations, 'selected' count locations, and 'un-selected' count locations
 var all_countlocs_layer = {},
     selected_countlocs_layer = {},
-	unselectted_countlocs_layer = {};
+	unselected_countlocs_layer = {};
+	
+// Leaflet icon for 'selected' count locations
+// Credit to: https://github.com/pointhi/leaflet-color-markers
+var selected_countloc_icon = new L.Icon({
+	iconUrl: 'img/marker-icon-gold.png',
+	shadowUrl: 'img/marker-shadow.png',
+	iconSize: [25, 41],
+	iconAnchor: [12, 41],
+	popupAnchor: [1, -34],
+	shadowSize: [41, 41]
+});
 
 // Arrays of GeoJSON features for ALL count locations (features) and ALL counts (the properties of these non-features)
 var all_countlocs = [],
@@ -29,9 +40,11 @@ var unselected_countlocs = [];
 // Danfo dataframes for count locations and counts - CURRENTLY UNUSED
 var countlocs_df = {},
     counts_df = {};
-	
-// Set extent of leaflet map based on bounding box of bp_loc_ids
-function set_map_extent(loc_ids) {
+
+// update_map:
+// 1. set extent of leaflet map based on bounding box of bp_loc_ids
+// 2. add layers for current set of 'selected' and 'unselected' count locations
+function update_map(loc_ids) {
 	// Compute bounding box of features for the given set of loc_ids
 	//        1. get feature for each loc_id, and get coordinates from italics
 	//        2. get bounding box (minX, minY, maxX, maxY) from that 
@@ -61,8 +74,36 @@ function set_map_extent(loc_ids) {
 	corner1 = L.latLng(miny, minx);
 	corner2 = L.latLng(maxy, maxx);
 	bounds  = L.latLngBounds(corner1, corner2);
+	
 	map.flyToBounds(bounds);
-} // set_map_extent
+	
+	if (map.hasLayer(all_countlocs_layer)) { map.removeLayer(all_countlocs_layer); }
+	if (map.hasLayer(selected_countlocs_layer)) { map.removeLayer(selected_countlocs_layer); }
+	if (map.hasLayer(unselected_countlocs_layer)) { map.removeLayer(unselected_countlocs_layer); }
+	
+	// Add SELECTED count locations to map
+	selected_countlocs_layer =  L.geoJSON(selected_countlocs, {
+		pointToLayer: function (feature, latlng) {
+			var content, marker;
+			content = 'Selected location ID = ' + feature.properties.loc_id;
+
+			marker = L.marker(latlng, { icon: selected_countloc_icon });
+			marker.bindPopup(content);
+			marker.addTo(map);
+		}
+	});
+	// Add UN-SELECTED count locations to map
+	unselected_countlocs_layer =  L.geoJSON(unselected_countlocs, {
+		pointToLayer: function (feature, latlng) {
+			var content, marker;
+			content = 'Un-selected location ID = ' + feature.properties.loc_id;
+			// Use default marker icon for un-selected count locations
+			marker = L.marker(latlng);
+			marker.bindPopup(content);
+			marker.addTo(map);
+		}
+	});
+} // update_map
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
 function counts_to_countloc_ids(counts) {
@@ -146,7 +187,7 @@ function pick_list_handler(e) {
 	selected_countlocs = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
 	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
 	
-	set_map_extent(selected_countloc_ids);
+	update_map(selected_countloc_ids, selected_countlocs, unselected_countlocs);
 } // pick_list_handler
 
 
