@@ -138,12 +138,13 @@ function pick_list_handler(e) {
 		return;
 	}
 	
-	// Compute 'selection sets' (and 'un-selection sets') of count locationas and counts
+	// Compute 'selection sets' and 'un-selection sets' of count locationas and counts
+	// God bless the people who wrote the ES6 language definition - doing this is easy now!
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
 	selected_countlocs = [];
-	selected_countloc_ids.forEach(function(loc_id) {
-		
-	});
+	var countloc_id_set = new Set(selected_countloc_ids);
+	selected_countlocs = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
+	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
 	
 	set_map_extent(selected_countloc_ids);
 } // pick_list_handler
