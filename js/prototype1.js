@@ -33,6 +33,7 @@ function set_map_extent(loc_ids) {
 		// Guard for referential integrity error in DB or bad feature geometry
 		if (feature == null) {
 			console.log('Referential integrity issue with loc_id ' + loc_id);
+		// The following statement is a sanity-check for dealing with possibly corrupted feature geometry during development:
 		} else if (feature.geometry == null ||
 		           feature.geometry.coordinates == null ||
 				   feature.geometry.coordinates.length != 2 ||
@@ -89,7 +90,6 @@ function pick_list_handler(e) {
 	}
     selected_counts = _.filter(selected_counts, filter_func);	
 	
-	var _DEBUG_TOGGLE = 0;
 	
 	if (pick_list == "select_town") {
 		years = _.map(selected_counts, function(count) { return count.count_date.substr(0,4); });
@@ -128,74 +128,6 @@ function pick_list_handler(e) {
 	set_map_extent(selected_countloc_ids);
 } // pick_list_handler
 
-/******************************************************************************
-// The code below is currently commented out, as it is POSSIBLY OBSOLETE
-//
-// On-change event handler for towns 
-function town_change_handler(e) {
-	var town, filter_func, counts_for_town, years, years_uniq, town_countlocs;
-	
-	town = $("#select_town").val();
-	// Find years for which we have counts for the given town
-	// First, find all counts for town; then find years of all these counts
-	if (town !== "Any") {
-		filter_func = function(count) { return count.municipality == town; };
-	} else {
-		filter_func = function(count) { return true; };
-	}
-	selected_counts = _.filter(selected_counts, filter_func);
-
-	years = _.map(selected_counts, function(c) { return c.count_date.substr(0,4); });
-	years_uniq = _.uniq(years);
-	years_uniq = years_uniq.sort().reverse();
-	
-	// Disable on-change event handler for 'select_year'
-	$('#select_year').off()
-	// Clear-out, and populate pick list
-	$('#select_year').empty();
-	years_uniq.forEach(function(year) {
-		$('#select_year').append(new Option(year, year));
-	});
-	// Re-enable on-change event handler for 'select_year'
-	$('#select_year').on('change', year_change_handler);
-	
-	town_countloc_ids = counts_to_countloc_ids(counts_for_town);
-	set_map_extent(town_countloc_ids);
-} // on-change handler for 'towns'
-
-// On-change event handler for years
-function year_change_handler(e) {
-	var year, filter_func, counts_for_year, towns, towns_uniq, year_countlocs;
-	
-	year = $("#select_year").val();
-	// Find towns for which we have counts for the given year
-	// First, find all counts for year; then find towns of all these counts
-	if (year !== "Any") {
-		filter_func = function(c) { return c.count_date.substr(0,4) == year; };
-	} else {
-		filter_func = function(c) { return true; };
-	}
-	counts_for_year = _.filter(counts, filter_func);
-
-	towns =  _.map(counts_for_year, function(c) { return c.municipality; });
-	towns_uniq = _.uniq(towns);
-	towns_uniq = towns_uniq.sort();
-	
-	// Disable on-change event handler for 'select_town'
-	$('#select_town').off()
-	// Clear-out, and populate pick list
-	$('#select_town').empty();	
-	
-	towns_uniq.forEach(function(town) {
-		$('#select_town').append(new Option(town, town));
-	});
-	// Re-enable on-change event handler for 'select_town'
-	$('#select_town').on('change', town_change_handler);	
-	
-	year_countloc_ids = counts_to_countloc_ids(counts_for_year);
-	set_map_extent(year_countloc_ids);
-} // on-change handler for 'years'
-******************************************************************************/
 
 function reset_handler(e) {
 	selected_countlocs = [],
@@ -230,7 +162,40 @@ function initialize_pick_lists(countlocs, counts) {
 	});
 } // initialize_pick_lists
 
-function main_app() {
+
+///////////////////////////////////////////////////////////////////////////////
+// DIAGNOSTIC / DEBUG ROUTINES - not for use in production
+// Validates integrity of geometry for all count locations
+function validate_integrity_of_countloc_geometry(countlocs) {
+	console.log('Validating integrity of feature geometries.');
+	countlocs.forEach(function(feature) {
+		loc_id = feature.properties.loc_id;
+		if (feature.geometry == null) {
+			console.log('Feature geometry is null: ' + loc_id);
+		} else if (feature.geometry.coordinates == null) {
+			console.log('Coordinates of feature geometry is null: ' + loc_id);
+		} else if (feature.geometry.coordinates.length != 2) {
+			console.log('Length of feature geometry coordinates for loc_id ' + loc_id + ' = ' + feature.geometry.coordinates.length);
+		}
+	});
+} // validate_integrity_of_countloc_geometry
+// Checks that the loc_id for each 'count' is found in the 'count locations' features
+function validate_referential_integrity(countlocs, counts) {
+	counts.forEach(function(count) {
+		var count_id, bp_loc_id, feature, msg;
+		count_id = count.count_id;
+		bp_loc_id = count.bp_loc_id;
+		feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == bp_loc_id; });
+		if (feature == null) {
+			msg = 'Feature ID ' + bp_loc_id + ' in count ID ' + count_id + ' NOT FOUND';
+			console.log(msg);
+		}
+	});
+} // validate_referential_integrity
+///////////////////////////////////////////////////////////////////////////////
+
+
+function initialize_map() {
 	map = L.map('map').setView([regionCenterLat, regionCenterLng], initialZoom);
 	const osm_base_layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
 		maxZoom: 19,
@@ -260,43 +225,12 @@ function main_app() {
 			marker.addTo(map);
 		}
 	});
-} // main_app
+} // initialize_map
 
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
     countsURL = 'data/json/bp_counts.json';
 	
 var getJson = function(url) { return $.get(url, null, 'json'); };
-
-// DIAGNOSTIC / DEBUG ROUTINE - not for use in production
-// Validates integrity of geometry for all count locations
-function validate_integrity_of_countloc_geometry(countlocs) {
-	console.log('Validating integrity of feature geometries.');
-	countlocs.forEach(function(feature) {
-		loc_id = feature.properties.loc_id;
-		if (feature.geometry == null) {
-			console.log('Feature geometry is null: ' + loc_id);
-		} else if (feature.geometry.coordinates == null) {
-			console.log('Coordinates of feature geometry is null: ' + loc_id);
-		} else if (feature.geometry.coordinates.length != 2) {
-			console.log('Length of feature geometry coordinates for loc_id ' + loc_id + ' = ' + feature.geometry.coordinates.length);
-		}
-	});
-} // validate_integrity_of_countloc_geometry
-
-// DIAGNOSTIC / DEBUG ROUTINE - not for use in production
-// Checks that the loc_id for each 'count' is found in the 'count locations' features
-function validate_referential_integrity(countlocs, counts) {
-	counts.forEach(function(count) {
-		var count_id, bp_loc_id, feature, msg;
-		count_id = count.count_id;
-		bp_loc_id = count.bp_loc_id;
-		feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == bp_loc_id; });
-		if (feature == null) {
-			msg = 'Feature ID ' + bp_loc_id + ' in count ID ' + count_id + ' NOT FOUND';
-			console.log(msg);
-		}
-	});
-} // validate_referential_integrity
 
 function initialize() {
 	 $.when(getJson(pointsURL), getJson(countsURL)).done(function(bp_countlocs, bp_counts ) {
@@ -334,12 +268,9 @@ function initialize() {
 		// Bind on-change event handler(s) for pick-list controls
 		$('#select_town,#select_year').on('change', pick_list_handler);
 		
-		// $('#select_town').on('change', town_change_handler);
-		// $('#select_year').on('change', year_change_handler);
-		
 		// Bind on-change event handler for 'reset' button 
 		$('#reset').on('click', reset_handler);
 
-		main_app();
+		initialize_map();
 	});
 } // initialize
