@@ -42,10 +42,6 @@ var selected_countlocs = [],
 // Arrays of GeoJSON count location features NOT in the current 'selection' set
 var unselected_countlocs = [];
 	
-// Danfo dataframes for count locations and counts - CURRENTLY UNUSED
-var countlocs_df = {},
-    counts_df = {};
-
 // update_map:
 // 1. set extent of leaflet map based on bounding box of bp_loc_ids
 // 2. add layers for current set of 'selected' and 'unselected' count locations
@@ -334,11 +330,6 @@ function initialize() {
 		// Initialize 'selection sets' for countlocs and counts
 		selected_countlocs = _.filter(all_countlocs)
 		selected_counts = _.filter(all_counts);
-		
-		// Convert JSON arrays to Danfo data frames - not yet used in app
-		//
-		// countlocs_df = new dfd.DataFrame(all_countlocs);
-		// counts_df = new dfd.DataFrame(all_counts);
 		
 		// Populate pick-lists with initial values
 		initialize_pick_lists(all_countlocs, all_counts);
