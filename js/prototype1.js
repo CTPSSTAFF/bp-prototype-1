@@ -9,6 +9,10 @@
 
 var bDebug = false; // Debug/diagnostics toggle
 
+// Data sources: count locations and count data
+var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
+    countsURL = 'data/json/bp_counts.json';
+
 // Innitial center and zoom level for map - approx center of MPO area
 var regionCenterLat = 42.38762765728668; 
 var regionCenterLng = -71.14615053347856; 
@@ -17,7 +21,7 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Arrays of leaflet marker 'layers'
+// Arrays of leaflet markers for selected and un-selected count locations
 var all_countloc_markers = [],
 	selected_countloc_markers = [],
     unselected_countloc_markers = [];
@@ -53,18 +57,23 @@ function update_map(loc_ids) {
 	//        2. get bounding box (minX, minY, maxX, maxY) from that 
 	var i, xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
 	
+	// The following is a sanity-check / bail-out for count locations in the database
+	// that currently have NO counts associated with them.
+	// THESE NEED TO BE PRUNED FROM THE DATABASE.
+	
+	if (loc_ids.length === 0) { 
+		var msg = 'No counts available for selected {town, year}.'
+		console.log(msg);
+		alert(msg);
+		reset_handler(null);
+		return; 
+	}
+	
 	loc_ids.forEach(function(loc_id) {
 		var feature = _.find(all_countlocs, function(feature) { return feature.properties.loc_id == loc_id; });
 		// Guard for referential integrity error in DB or bad feature geometry
 		if (feature == null) {
 			console.log('Referential integrity issue with loc_id ' + loc_id);
-		// The following statement is a sanity-check for dealing with possibly corrupted feature geometry during development:
-		} else if (feature.geometry == null ||
-		           feature.geometry.coordinates == null ||
-				   feature.geometry.coordinates.length != 2 ||
-				   feature.geometry.coordinates[0] == 0 || 
-				   feature.geometry.coordinates[1] == 0) {
-			console.log('Problem with geometry for loc_id ' + loc_id);
 		} else {
 			xcoords.push(feature.geometry.coordinates[0]);
 			ycoords.push(feature.geometry.coordinates[1]);
@@ -122,10 +131,13 @@ function counts_to_countloc_ids(counts) {
 	return bp_loc_ids;
 }
 
-// On-change event handler for pick-lists of towns and years.
-// Aside from purely UI-related tasks, the primary job of 
-// this function is to compute the current 'selection set'
-// (and 'un-selection set') of count locations and counts.
+// pick_list_handler: On-change event handler for pick-lists of towns and years.
+//
+// Aside from purely UI-related tasks, the primary job of this function is 
+// to compute the current 'selection set' and 'un-selection set) of count locations.
+// Once these sets have been computed, this function calls 'update_map' to update
+// the leaflfet map accordingly.
+//
 function pick_list_handler(e) {
 	var pick_list,   // ID of pick list that triggered event
 	    town, year,
@@ -138,7 +150,8 @@ function pick_list_handler(e) {
 	// 1. apply whatever filters have been selected
 	// 2. re-calcuate selected_counts
 	// 3. re-populate 'other' select list if needed
-	// 4. pan/zoom map
+	// 4. calculate selected_countlocs and unselected_countlocs
+	// 5. call 'update_map' to update the leaflet map, accordingly
 	
 	if (town !== "Any") {
 		filter_func = function(count) { return count.municipality == town; };
@@ -189,7 +202,7 @@ function pick_list_handler(e) {
 		return;
 	}
 	
-	// Compute 'selection sets' and 'un-selection sets' of count locationas and counts
+	// Compute 'selection set' and 'un-selection set' of count locations.
 	// God bless the people who wrote the ES6 language definition - doing this is easy now!
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
 	selected_countlocs = [];
@@ -197,16 +210,14 @@ function pick_list_handler(e) {
 	selected_countlocs = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
 	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
 	
-	update_map(selected_countloc_ids, selected_countlocs, unselected_countlocs);
+	update_map(selected_countloc_ids);
 } // pick_list_handler
 
-
+// reset_handler: on-click event handler for 'reset' button
+//
 function reset_handler(e) {
-	// Check this
-    selected_counts = [];
-	
 	var i;
-	
+
 	selected_countlocs = [];
 	for (i = 0; i< selected_countloc_markers.length; i++) { 
 		map.removeLayer(selected_countloc_markers[i]);
@@ -298,9 +309,6 @@ function initialize_map() {
 		}
 	});
 } // initialize_map
-
-var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
-    countsURL = 'data/json/bp_counts.json';
 	
 var getJson = function(url) { return $.get(url, null, 'json'); };
 
