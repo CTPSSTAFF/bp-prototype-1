@@ -47,7 +47,8 @@ var selected_countlocs = [],
 	
 // Arrays of GeoJSON count location features NOT in the current 'selection set'
 var unselected_countlocs = [];
-	
+
+
 // update_map:
 // 1. set extent of leaflet map based on bounding box of bp_loc_ids
 // 2. add layers for current set of 'selected' and 'unselected' count locations
@@ -125,17 +126,18 @@ function update_map(loc_ids) {
 } // update_map
 
 function update_grid(selected_countlocs) {
-	$('#grid').empty();
-	new gridjs.Grid({	columns: ["Name", "Email", "Phone Number"],
-						search: true,
-						pagination: true,
-						data: [ ["John", "john@example.com", "(353) 01 222 3333"],
-                                ["Mark", "mark@gmail.com", "(01) 22 888 4444"],
-                                ["Eoin", "eoin@gmail.com", "0097 22 654 00033"],
-                                ["Sarah", "sarahcdd@gmail.com", "+322 876 1233"],
-                                ["Afshin", "afshin@mail.com", "(353) 22 87 8356"]
-                             ]
-}).render(document.getElementById("grid"));
+	var data =[];
+	// Populate 'data' array with info about the selected count locations
+	selected_countlocs.forEach(function(cl) {
+		// NOTE: cl.properties.loc_id has the B-P count location ID
+		data.push([cl.properties.description, cl.properties.town]);
+	});
+	
+		new gridjs.Grid({	columns: ["Count Location", "Municipality"],
+							search: true,
+							pagination: true,
+							data : data}
+						).render(document.getElementById("grid"));
 	
 } // update_grid
 
@@ -263,7 +265,6 @@ function reset_handler(e) {
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
 	
-	$('#grid').empty();
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on all_countlocs and all_counts
@@ -364,7 +365,7 @@ function initialize() {
 		
 		// Bind on-change event handler for 'reset' button 
 		$('#reset').on('click', reset_handler);
-
+		
 		initialize_map();
 	});
 } // initialize
