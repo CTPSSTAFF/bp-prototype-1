@@ -125,11 +125,16 @@ function update_map(loc_ids) {
 } // update_map
 
 function update_table(countlocs) {
-		var data_array = [];
+	var data_array = [];
+	// Populate 'data' array with info about the selected count locations
+	selected_countlocs.forEach(function(cl) {
+		// NOTE: cl.properties.loc_id has the B-P count location ID
+		data_array.push({'Count Location' : cl.properties.description, 'Town' : cl.properties.town});
+	});
 		
-		$('#output_table').empty();
+	$('#output_table').empty();
 		
-	    $("#output_table").jsGrid({
+	$("#output_table").jsGrid({
 			height: "90%",
 			width: "100%",
 			sorting: true,
@@ -139,8 +144,9 @@ function update_table(countlocs) {
 				{ name: "Count Location", type: "text", width: 300 },
 				{ name: "Town", type: "text", width: 100 }
 			]
-		});
+	});
 	
+	var _DEBUG_HOOK = 0;
 } // update_table
 
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
