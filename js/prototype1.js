@@ -129,7 +129,7 @@ function update_table(countlocs) {
 	// Populate 'data' array with info about the selected count locations
 	selected_countlocs.forEach(function(cl) {
 		// NOTE: cl.properties.loc_id has the B-P count location ID
-		data_array.push({'Count Location' : cl.properties.description, 'Town' : cl.properties.town});
+		data_array.push({'countloc' : cl.properties.description, 'town' : cl.properties.town});
 	});
 		
 	$('#output_table').empty();
@@ -141,8 +141,8 @@ function update_table(countlocs) {
 			paging: true,
 			data: data_array,
 			fields: [
-				{ name: "Count Location", type: "text", width: 300 },
-				{ name: "Town", type: "text", width: 100 }
+				{ name: "countloc", title: "Count Location", type: "text", width: 300 },
+				{ name: "town", title: "Town", type: "text", width: 100 }
 			]
 	});
 	
@@ -272,6 +272,7 @@ function reset_handler(e) {
 	
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
+	$('#output_table').empty();
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on all_countlocs and all_counts
