@@ -7,7 +7,7 @@
 //
 // Author: Ben Krepp, bkrepp@ctps.org
 
-var bDebug = false; // Debug/diagnostics toggle
+var bDebug = true; // Debug/diagnostics toggle
 
 // Data sources: count locations and count data
 var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
@@ -57,10 +57,10 @@ function update_map(loc_ids) {
 	//        2. get bounding box (minX, minY, maxX, maxY) from that 
 	var i, xcoords = [], ycoords = [], minx, miny, maxx, maxy, corner1, corner2, bounds;
 	
+	// *** WARNING: TEMPORARY HACK ***
 	// The following is a sanity-check / bail-out for count locations in the database
 	// that currently have NO counts associated with them.
 	// THESE NEED TO BE PRUNED FROM THE DATABASE.
-	
 	if (loc_ids.length === 0) { 
 		var msg = 'No counts available for selected {town, year}.'
 		console.log(msg);
@@ -329,8 +329,9 @@ function initialize() {
 		
 		// DIAGNOSTIC / DEBUG - requires loading of separate 'js/diagnostics.js' file
 		if (bDebug == true) {
-			validate_integrity_of_countloc_geometry(all_countlocs);
-			validate_referential_integrity(all_countlocs, all_counts);	
+			// validate_integrity_of_countloc_geometry(all_countlocs);
+			var errors = validate_referential_integrity(all_countlocs, all_counts);	
+			var _DEBUG_HOOK = 0;
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
