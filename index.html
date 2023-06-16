@@ -30,21 +30,28 @@
 		     crossorigin="">
 	</script>
 	
-	<!-- JS for turf.js library, for spatial analysis -->
+	<!-- JS for turf.js library, for spatial analysis - currently unused -->
+	<!--
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/0.0.124/turf.min.js" 
 	       integrity="sha512-jpnZ8xGKbS7L9S6d5fk/zDVgF6OoVKLMoEliLxf24BRX+orWhxqJuUcoM+vGmOaozS9dD9ABjQZKAgjjcwTndA==" 
 		   crossorigin="anonymous" 
 		   referrerpolicy="no-referrer">
 	</script>
+	-->
 	
-	<!-- JS for Danfo library for pandas-style data analysis -->
+	<!-- CSS and JS for grid.js library, fetched from a CDN -->
+	<link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet"/>
+	<script src="https://unpkg.com/gridjs/dist/gridjs.umd.js">
+	</script>
+	
+	<!-- JS for Danfo library for pandas-style data analysis, currently unused -->
 	<!--
 	<script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js">
 	</script>
 	-->
-
 	<!-- JS for prototype app -->
 	<script src="js/prototype1.js"></script>
+	<!-- JS for debug/diagnostic code for use during development -->
 	<script src="js/diagnostics.js"></script>
 </head>
 <body>
@@ -60,8 +67,12 @@
 				<button id="reset">Reset app</button>
 		</span>
 	</div>
+	
 	<div id="map">
 	</div>
+	<div id="grid">
+	</div>
+	
 	<script>
 	$(document).ready(function() {
 		initialize();	
