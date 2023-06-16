@@ -132,7 +132,7 @@ function update_table(countlocs) {
 		data_array.push({'countloc' : cl.properties.description, 'town' : cl.properties.town});
 	});
 		
-	$('#output_table').empty();
+	// $('#output_table').empty();
 		
 	$("#output_table").jsGrid({
 			height: "90%",
@@ -145,7 +145,7 @@ function update_table(countlocs) {
 				{ name: "town", title: "Town", type: "text", width: 100 }
 			]
 	});
-	
+	$('#output_table').show();
 	var _DEBUG_HOOK = 0;
 } // update_table
 
@@ -272,7 +272,7 @@ function reset_handler(e) {
 	
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
-	$('#output_table').empty();
+	$('#output_table').hide();
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on all_countlocs and all_counts
