@@ -18,14 +18,17 @@ function validate_integrity_of_countloc_geometry(countlocs) {
 
 // Checks that the loc_id for each 'count' is found in the 'count locations' features
 function validate_referential_integrity(countlocs, counts) {
+	var errors = [];
+	var tmp = { 'count_id' : null, 'loc_id' : null };
 	counts.forEach(function(count) {
 		var count_id, bp_loc_id, feature, msg;
 		count_id = count.count_id;
 		bp_loc_id = count.bp_loc_id;
 		feature = _.find(countlocs, function(feature) { return feature.properties.loc_id == bp_loc_id; });
 		if (feature == null) {
-			msg = 'Feature ID ' + bp_loc_id + ' in count ID ' + count_id + ' NOT FOUND';
-			console.log(msg);
+			tmp = { 'count_id' : count_id, 'loc_id' : bp_loc_id };
+			errors.push(tmp);
 		}
 	});
+	return errors;
 } 
