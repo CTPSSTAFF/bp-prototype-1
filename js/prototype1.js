@@ -77,11 +77,7 @@ function update_map(loc_ids) {
 	corner1 = L.latLng(miny, minx);
 	corner2 = L.latLng(maxy, maxx);
 	bounds  = L.latLngBounds(corner1, corner2);
-	
 	map.flyToBounds(bounds);
-	
-	// THE FOLLOWING LINE MAY NO LONGER BE NEEDED
-	// if (map.hasLayer(all_countlocs_layer)) { map.removeLayer(all_countlocs_layer); }
 	
 	// Remove markers for selected count locations
 	for (i = 0; i < selected_countloc_markers.length; i++) {
