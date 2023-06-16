@@ -124,6 +124,25 @@ function update_map(loc_ids) {
 	});
 } // update_map
 
+function update_table(countlocs) {
+		var data_array = [];
+		
+		$('#output_table').empty();
+		
+	    $("#output_table").jsGrid({
+			height: "90%",
+			width: "100%",
+			sorting: true,
+			paging: true,
+			data: data_array,
+			fields: [
+				{ name: "Count Location", type: "text", width: 300 },
+				{ name: "Town", type: "text", width: 100 }
+			]
+		});
+	
+} // update_table
+
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
 function counts_to_countloc_ids(counts) {
 	var bp_loc_ids = _.map(counts, function(c) { return c.bp_loc_id; });
@@ -211,6 +230,7 @@ function pick_list_handler(e) {
 	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
 	
 	update_map(selected_countloc_ids);
+	update_table(selected_countlocs);
 } // pick_list_handler
 
 // reset_handler: on-click event handler for 'reset' button
