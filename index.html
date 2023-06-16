@@ -24,27 +24,35 @@
 	 <!-- CSS for app -->
 	 <link rel="stylesheet" href="css/prototype1.css">
 	 
-	 <!-- JS for Leaflet library: Make sure this is AFTER Leaflet's CSS -->
+	 <!-- JS for Leaflet library, fetched from a CDN: Make sure this is AFTER Leaflet's CSS -->
 	 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
 		     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
 		     crossorigin="">
 	</script>
 	
-	<!-- JS for turf.js library, for spatial analysis -->
+	<!-- JS for turf.js library, for spatial analysis - currently unused -->
+	<!--
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/Turf.js/0.0.124/turf.min.js" 
 	       integrity="sha512-jpnZ8xGKbS7L9S6d5fk/zDVgF6OoVKLMoEliLxf24BRX+orWhxqJuUcoM+vGmOaozS9dD9ABjQZKAgjjcwTndA==" 
 		   crossorigin="anonymous" 
 		   referrerpolicy="no-referrer">
 	</script>
+	-->
 	
-	<!-- JS for Danfo library for pandas-style data analysis -->
+	<!-- JS for Danfo library for pandas-style data analysis - currently unused -->
 	<!--
 	<script src="https://cdn.jsdelivr.net/npm/danfojs@1.1.2/lib/bundle.min.js">
 	</script>
 	-->
+	
+	<!-- CSS and JS for jsgrid, fetched from a CDN -->
+	<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.css" />
+	<link type="text/css" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid-theme.min.css" />
+	<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jsgrid/1.5.3/jsgrid.min.js"></script>
 
 	<!-- JS for prototype app -->
 	<script src="js/prototype1.js"></script>
+	<!-- JS for debug / diagnostic code for use during development -->
 	<script src="js/diagnostics.js"></script>
 </head>
 <body>
@@ -61,6 +69,8 @@
 		</span>
 	</div>
 	<div id="map">
+	</div>
+	<div id="output_table">
 	</div>
 	<script>
 	$(document).ready(function() {
