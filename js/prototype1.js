@@ -124,6 +124,21 @@ function update_map(loc_ids) {
 	});
 } // update_map
 
+function update_grid(selected_countlocs) {
+	$('#grid').empty();
+	new gridjs.Grid({	columns: ["Name", "Email", "Phone Number"],
+						search: true,
+						pagination: true,
+						data: [ ["John", "john@example.com", "(353) 01 222 3333"],
+                                ["Mark", "mark@gmail.com", "(01) 22 888 4444"],
+                                ["Eoin", "eoin@gmail.com", "0097 22 654 00033"],
+                                ["Sarah", "sarahcdd@gmail.com", "+322 876 1233"],
+                                ["Afshin", "afshin@mail.com", "(353) 22 87 8356"]
+                             ]
+}).render(document.getElementById("grid"));
+	
+} // update_grid
+
 // Return array of bp_loc_ids (B-P count locations) for a given set of counts
 function counts_to_countloc_ids(counts) {
 	var bp_loc_ids = _.map(counts, function(c) { return c.bp_loc_id; });
@@ -211,6 +226,7 @@ function pick_list_handler(e) {
 	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
 	
 	update_map(selected_countloc_ids);
+	update_grid(selected_countlocs);
 } // pick_list_handler
 
 // reset_handler: on-click event handler for 'reset' button
@@ -246,6 +262,8 @@ function reset_handler(e) {
 	
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
+	
+	$('#grid').empty();
 } // on-click handler for 'reset'
 
 // Populate the pick-lists with their initial values, based on all_countlocs and all_counts
