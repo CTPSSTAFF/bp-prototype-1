@@ -21,12 +21,14 @@ var initialZoom = 11;
 // Leaflet 'map' Object
 var map = {};
 
-// Arrays of leaflet markers for selected and un-selected count locations
-var all_countloc_markers = [],
-	selected_countloc_markers = [],
-    unselected_countloc_markers = [];
-	
-// Leaflet icon for 'selected' count locations (un-selected locations use default marker icon)
+// Array of GeoJSON features for ALL count locations
+var all_countlocs = [];
+
+// Array of 'non-features' for ALL counts and selected counts
+var all_counts = [],
+    selected_counts = [];
+
+// Leaflet icon for 'selected' count locations
 // Credit to: https://github.com/pointhi/leaflet-color-markers
 var selected_countloc_icon = new L.Icon({
 	iconUrl: 'img/marker-icon-gold.png',
@@ -36,18 +38,74 @@ var selected_countloc_icon = new L.Icon({
 	popupAnchor: [1, -34],
 	shadowSize: [41, 41]
 });
+// Leaflet icon for 'unselected' count locations - this 'should' be the default leaflet icon
+var unselected_countloc_icon = new L.Icon({
+	iconUrl: 'img/marker-icon-blue.png',
+	shadowUrl: 'img/marker-shadow.png',
+	iconSize: [25, 41],
+	iconAnchor: [12, 41],
+	popupAnchor: [1, -34],
+	shadowSize: [41, 41]
+});
 
-// Arrays of GeoJSON features for ALL count locations (features) and ALL counts (the properties of these non-features)
-var all_countlocs = [],
-    all_counts = [];
-	
-// Arrays of GeoJSON features for current 'selection set' of count locations and counts
-var selected_countlocs = [],
-    selected_counts = [];
-	
-// Arrays of GeoJSON count location features NOT in the current 'selection set'
-var unselected_countlocs = [];
-	
+// Custom options for 'circle' marker for GeoJSON features
+// *** CURRENTLY UNUSED ***
+var geojsonMarkerOptions = {
+	radius: 3.5,
+	fillColor: "#ff7800",
+	color: "#000", 
+	weight: 0.5,
+	opacity: 1,
+	fillOpacity: 0.8
+};
+
+// Un-initialized objecs for 'selected' and 'un-selected' countlocs;
+var selected_countlocs 	 = { 'countlocs'	: [], 
+                             'markers' 		: [],
+							 'icon' 		: selected_countloc_icon },
+    unselected_countlocs = { 'countlocs' 	: [], 
+	                         'markers' 		: [],
+							 'icon' 		: unselected_countloc_icon } ;
+
+// Begin: Functions to manage 'selected_countlocs' and 'unselected_countlocs'
+function add_countlocs_to_cl_set(cls, countlocs) {
+	cls.countlocs = countlocs;
+}
+
+function clear_cl_set(cls) {
+	cls.countlocs = [];
+}
+
+// Add markers for  countlocs to the leaflet map
+// As each marker is created, it is added to the cls.markers array	
+function add_markers_for_cl_set(cls) {
+	var _DEBUG_HOOK = 0;
+	L.geoJSON(cls.countlocs, {
+		pointToLayer: function (feature, latlng) {
+			var content, marker;
+			content = 'Location ID = ' + feature.properties.loc_id;
+			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
+			marker = L.marker(latlng, { icon: cls.icon });
+			marker.bindPopup(content);
+			marker.addTo(map);
+			cls.markers.push(marker);
+		}
+	});	
+	DEBUG_HOOK = 1;
+}
+
+// In leaflet, each 'marker' is a layer.
+// Thus to remove a set of markers, the layer for each must be removed individually
+function remove_markers_for_cl_set(cls) {
+	var i;
+	for (i = 0; i < cls.markers; i++ ) {
+		map.removeLayer(cls.markers[i]);
+	}
+	cls.markers = [];
+}
+// End: Functions to manage 'selected_countlocs' and 'unselected_countlocs'
+
+
 // update_map:
 // 1. set extent of leaflet map based on bounding box of bp_loc_ids
 // 2. add layers for current set of 'selected' and 'unselected' count locations
@@ -88,51 +146,22 @@ function update_map(loc_ids) {
 	bounds  = L.latLngBounds(corner1, corner2);
 	map.flyToBounds(bounds);
 	
-	// Remove markers for selected count locations
-	for (i = 0; i < selected_countloc_markers.length; i++) {
-		map.removeLayer(selected_countloc_markers[i]);
-	}
-	selected_countloc_markers = [];
-	// Remove markers for un-selectec count locations
-	for (i = 0; i < unselected_countloc_markers.length; i++) {
-		map.removeLayer(unselected_countloc_markers[i]);
-	}
-	unselected_countloc_markers = [];
-	
-	// Add SELECTED count locations to map, and cache them in 'selected_countloc_markers'
-	L.geoJSON(selected_countlocs, {
-		pointToLayer: function (feature, latlng) {
-			var content, marker;
-			content = 'Selected location ID = ' + feature.properties.loc_id;
-			marker = L.marker(latlng, { icon: selected_countloc_icon });
-			marker.bindPopup(content);
-			marker.addTo(map);
-			selected_countloc_markers.push(marker);
-		}
-	});
-	// Add UN-SELECTED count locations to map, and cache them in 'unselected_countloc_markers'
-	L.geoJSON(unselected_countlocs, {
-		pointToLayer: function (feature, latlng) {
-			var content, marker;
-			content = 'Un-selected location ID = ' + feature.properties.loc_id;
-			// Use default marker icon for un-selected count locations
-			marker = L.marker(latlng);
-			marker.bindPopup(content);
-			marker.addTo(map);
-			unselected_countloc_markers.push(marker);
-		}
-	});
+	// Replace the old set of 'selected' countloc markers with the new one
+	remove_markers_for_cl_set(selected_countlocs);
+	add_markers_for_cl_set(selected_countlocs);
+
+	// Replace the old set of 'selected' countloc markers with the new one
+	remove_markers_for_cl_set(unselected_countlocs);
+	add_markers_for_cl_set(unselected_countlocs);
 } // update_map
 
 function update_table(countlocs) {
 	var data_array = [];
 	// Populate 'data' array with info about the selected count locations
-	selected_countlocs.forEach(function(cl) {
+	selected_countlocs.countlocs.forEach(function(cl) {
 		// NOTE: cl.properties.loc_id has the B-P count location ID
 		data_array.push({'countloc' : cl.properties.description, 'town' : cl.properties.town});
 	});
-		
-	// $('#output_table').empty();
 		
 	$("#output_table").jsGrid({
 			height: "90%",
@@ -227,13 +256,19 @@ function pick_list_handler(e) {
 		return;
 	}
 	
+	// HERE: We have an array of the selected counts
+	//       We need to turn this into a set of selected count locations
+	//       and a set of un-selected count locations
+	
 	// Compute 'selection set' and 'un-selection set' of count locations.
 	// God bless the people who wrote the ES6 language definition - doing this is easy now!
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
-	selected_countlocs = [];
 	var countloc_id_set = new Set(selected_countloc_ids);
-	selected_countlocs = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
-	unselected_countlocs = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
+	var selected = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
+	var unselected = all_countlocs.filter(rec => !countloc_id_set.has(rec.properties.loc_id));
+	
+	add_countlocs_to_cl_set(selected_countlocs, selected);
+	add_countlocs_to_cl_set(unselected_countlocs, unselected);
 	
 	update_map(selected_countloc_ids);
 	update_table(selected_countlocs);
@@ -242,33 +277,11 @@ function pick_list_handler(e) {
 // reset_handler: on-click event handler for 'reset' button
 //
 function reset_handler(e) {
-	var i;
-
-	selected_countlocs = [];
-	for (i = 0; i< selected_countloc_markers.length; i++) { 
-		map.removeLayer(selected_countloc_markers[i]);
-	}
-	selected_countloc_markers = [];
+	add_countlocs_to_cl_set(selected_countlocs, []);
+	remove_markers_for_cl_set(selected_countlocs);
 	
-	uselected_countlocs = [];
-	for (i = 0; i< unselected_countloc_markers.length; i++) { 
-		map.removeLayer(unselected_countloc_markers[i]);
-	}
-	unselected_countloc_markers = [];
-	
-	// Add all count locations to map, and cache them in 'unselected_countloc_markers'
-	// All countlocs are 'un-selected' at reset
-	L.geoJSON(all_countlocs, {
-		pointToLayer: function (feature, latlng) {
-			var content, marker;
-			content = 'Location ID = ' + feature.properties.loc_id;
-			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
-			marker = L.marker(latlng);
-			marker.bindPopup(content);
-			marker.addTo(map);
-			unselected_countloc_markers.push(marker);
-		}
-	});
+	add_countlocs_to_cl_set(unselected_countlocs, _.filter(all_countlocs));
+	add_markers_for_cl_set(unselected_countlocs);
 	
 	initialize_pick_lists(all_countlocs, all_counts);
 	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
@@ -309,34 +322,11 @@ function initialize_pick_lists(countlocs, counts) {
 function initialize_map() {
 	map = L.map('map').setView([regionCenterLat, regionCenterLng], initialZoom);
 	const osm_base_layer = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-		maxZoom: 19,
-		attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-	}).addTo(map);
-	
-	// Custom options for 'circle' marker for GeoJSON features - CURRENTLY UNUSED
-	var geojsonMarkerOptions = {
-		radius: 3.5,
-		fillColor: "#ff7800",
-		color: "#000", 
-		weight: 0.5,
-		opacity: 1,
-		fillOpacity: 0.8
-	};
-	
-	// Add all count locations to map
-	L.geoJSON(all_countlocs, {
-		pointToLayer: function (feature, latlng) {
-			var content, marker;
-			content = 'Location ID = ' + feature.properties.loc_id;
-			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
-			marker = L.marker(latlng);
-			marker.bindPopup(content);
-			marker.addTo(map);
-			unselected_countloc_markers.push(marker);
-		}
-	});
-} // initialize_map
-	
+			maxZoom: 19,
+			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+		}).addTo(map);
+}
+
 var getJson = function(url) { return $.get(url, null, 'json'); };
 
 function initialize() {
@@ -362,8 +352,13 @@ function initialize() {
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
-		selected_countlocs = _.filter(all_countlocs)
-		selected_counts = _.filter(all_counts);
+		add_countlocs_to_cl_set(selected_countlocs, []); // Not really necessary, just to be explicit
+		add_countlocs_to_cl_set(unselected_countlocs, _.filter(all_countlocs));
+
+		var _DEBUG_HOOK = 0;
+		
+		// selected_countlocs = _.filter(all_countlocs);
+		// selected_counts = _.filter(all_counts);
 		
 		// Populate pick-lists with initial values
 		initialize_pick_lists(all_countlocs, all_counts);
@@ -374,6 +369,13 @@ function initialize() {
 		// Bind on-change event handler for 'reset' button 
 		$('#reset').on('click', reset_handler);
 
+		_DEBUG_HOOK = 1;
+		
 		initialize_map();
-	});
+		
+		// Add markers for unselected countlocs to map
+		add_markers_for_cl_set(unselected_countlocs);
+		
+		_DEBUG_HOOK = 2;
+	 });
 } // initialize
