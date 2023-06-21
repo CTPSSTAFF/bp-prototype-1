@@ -76,9 +76,11 @@ function clear_cl_set(cls) {
 	cls.countlocs = [];
 }
 
+// For all counts (or count_summaries) in the input array 'c',
+// compute the sum of all count values for the AM peak peroid,
+// and return it.
+// The AM peak period defined as: 0630 to 0900 hours.
 function calc_am_peak(c) {
-	var retval;
-	// console.log(c.bp_loc_id);
 	retval = ((c.cnt_0630 != null) ? c.cnt_0630 : 0) + 
 	         ((c.cnt_0645 != null) ? c.cnt_0645 : 0) +
 	         ((c.cnt_0700 != null) ? c.cnt_0700 : 0) +
@@ -92,9 +94,11 @@ function calc_am_peak(c) {
 	return retval;
 }
 
+// For all counts (or count_summaries) in the input array 'c',
+// compute the sum of all count values for the PM peak peroid,
+// and return it.
+// The PM peak period defined as: 1600 to 1900 hours.
 function calc_pm_peak(c) {
-	var retval;
-	// console.log(c.bp_loc_id);
 	retval = ((c.cnt_1600 != null) ? c.cnt_1600 : 0) +
 	         ((c.cnt_1615 != null) ? c.cnt_1615 : 0) + 
 			 ((c.cnt_1630 != null) ? c.cnt_1630 : 0) + 
@@ -110,9 +114,110 @@ function calc_pm_peak(c) {
 	return retval;
 }
 
+// summarize_set_of_counts: 
+// Given an input array of 'counts' records, calculate the summary across all
+// records for each 15-minute time period and return it in an object,
+// keyed by 'cnt_hhmm' key.
+function summarize_set_of_counts(counts) {
+	retval = { 'cnt_0630' : 0, 'cnt_0645' : 0,
+               'cnt_0700' : 0, 'cnt_0715' : 0, 'cnt_0730' : 0, 'cnt_0745' : 0,
+               'cnt_0800' : 0, 'cnt_0815' : 0, 'cnt_0830' : 0, 'cnt_0845' : 0,
+               'cnt_0900' : 0, 'cnt_0915' : 0, 'cnt_0930' : 0, 'cnt_0945' : 0,
+               'cnt_1000' : 0, 'cnt_1015' : 0, 'cnt_1030' : 0, 'cnt_1045' : 0,
+               'cnt_1100' : 0, 'cnt_1115' : 0, 'cnt_1130' : 0, 'cnt_1145' : 0,
+               'cnt_1200' : 0, 'cnt_1215' : 0, 'cnt_1230' : 0, 'cnt_1245' : 0,
+               'cnt_1300' : 0, 'cnt_1315' : 0, 'cnt_1330' : 0, 'cnt_1345' : 0,
+               'cnt_1400' : 0, 'cnt_1415' : 0, 'cnt_1430' : 0, 'cnt_1445' : 0,
+               'cnt_1500' : 0, 'cnt_1515' : 0, 'cnt_1530' : 0, 'cnt_1545' : 0,
+               'cnt_1600' : 0, 'cnt_1615' : 0, 'cnt_1630' : 0, 'cnt_1645' : 0,
+               'cnt_1700' : 0, 'cnt_1715' : 0, 'cnt_1730' : 0, 'cnt_1745' : 0,
+               'cnt_1800' : 0, 'cnt_1815' : 0, 'cnt_1830' : 0, 'cnt_1845' : 0,
+               'cnt_1900' : 0, 'cnt_1915' : 0, 'cnt_1930' : 0, 'cnt_1945' : 0,
+               'cnt_2000' : 0, 'cnt_2015' : 0, 'cnt_2030' : 0, 'cnt_2045' : 0
+	}
+
+	retval.cnt_0630 =  _.sum(_.map(counts, function(c) { return c.cnt_0630; }));
+	retval.cnt_0645 =  _.sum(_.map(counts, function(c) { return c.cnt_0645; }));
+	
+	retval.cnt_0700 =  _.sum(_.map(counts, function(c) { return c.cnt_0700; }));
+	retval.cnt_0715 =  _.sum(_.map(counts, function(c) { return c.cnt_0715; }));	
+	retval.cnt_0730 =  _.sum(_.map(counts, function(c) { return c.cnt_0730; }));	
+	retval.cnt_0745 =  _.sum(_.map(counts, function(c) { return c.cnt_0745; }));	
+
+	retval.cnt_0800 =  _.sum(_.map(counts, function(c) { return c.cnt_0800; }));	
+	retval.cnt_0815 =  _.sum(_.map(counts, function(c) { return c.cnt_0815; }));	
+	retval.cnt_0830 =  _.sum(_.map(counts, function(c) { return c.cnt_0830; }));	
+	retval.cnt_0845 =  _.sum(_.map(counts, function(c) { return c.cnt_0845; }));
+	
+	retval.cnt_0900 =  _.sum(_.map(counts, function(c) { return c.cnt_0900; }));	
+	retval.cnt_0915 =  _.sum(_.map(counts, function(c) { return c.cnt_0915; }));	
+	retval.cnt_0930 =  _.sum(_.map(counts, function(c) { return c.cnt_0930; }));	
+	retval.cnt_0945 =  _.sum(_.map(counts, function(c) { return c.cnt_0945; }));	
+
+	retval.cnt_1000 =  _.sum(_.map(counts, function(c) { return c.cnt_1000; }));	
+	retval.cnt_1015 =  _.sum(_.map(counts, function(c) { return c.cnt_1015; }));	
+	retval.cnt_1030 =  _.sum(_.map(counts, function(c) { return c.cnt_1030; }));	
+	retval.cnt_1045 =  _.sum(_.map(counts, function(c) { return c.cnt_1045; }));	
+
+	retval.cnt_1100 =  _.sum(_.map(counts, function(c) { return c.cnt_1100; }));	
+	retval.cnt_1115 =  _.sum(_.map(counts, function(c) { return c.cnt_1115; }));	
+	retval.cnt_1130 =  _.sum(_.map(counts, function(c) { return c.cnt_1130; }));	
+	retval.cnt_1145 =  _.sum(_.map(counts, function(c) { return c.cnt_1145; }));	
+
+	retval.cnt_1200 =  _.sum(_.map(counts, function(c) { return c.cnt_1200; }));	
+	retval.cnt_1215 =  _.sum(_.map(counts, function(c) { return c.cnt_1215; }));	
+	retval.cnt_1230 =  _.sum(_.map(counts, function(c) { return c.cnt_1230; }));	
+	retval.cnt_1245 =  _.sum(_.map(counts, function(c) { return c.cnt_1245; }));	
+
+	retval.cnt_1300 =  _.sum(_.map(counts, function(c) { return c.cnt_1300; }));	
+	retval.cnt_1315 =  _.sum(_.map(counts, function(c) { return c.cnt_1315; }));	
+	retval.cnt_1330 =  _.sum(_.map(counts, function(c) { return c.cnt_1330; }));	
+	retval.cnt_1345 =  _.sum(_.map(counts, function(c) { return c.cnt_1345; }));	
+
+	retval.cnt_1400 =  _.sum(_.map(counts, function(c) { return c.cnt_1400; }));	
+	retval.cnt_1415 =  _.sum(_.map(counts, function(c) { return c.cnt_1415; }));	
+	retval.cnt_1430 =  _.sum(_.map(counts, function(c) { return c.cnt_1430; }));	
+	retval.cnt_1445 =  _.sum(_.map(counts, function(c) { return c.cnt_1445; }));	
+
+	retval.cnt_1500 =  _.sum(_.map(counts, function(c) { return c.cnt_1500; }));	
+	retval.cnt_1515 =  _.sum(_.map(counts, function(c) { return c.cnt_1515; }));	
+	retval.cnt_1530 =  _.sum(_.map(counts, function(c) { return c.cnt_1530; }));	
+	retval.cnt_1545 =  _.sum(_.map(counts, function(c) { return c.cnt_1545; }));	
+
+	retval.cnt_1600 =  _.sum(_.map(counts, function(c) { return c.cnt_1600; }));	
+	retval.cnt_1615 =  _.sum(_.map(counts, function(c) { return c.cnt_1615; }));	
+	retval.cnt_1630 =  _.sum(_.map(counts, function(c) { return c.cnt_1630; }));	
+	retval.cnt_1645 =  _.sum(_.map(counts, function(c) { return c.cnt_1645; }));	
+
+	retval.cnt_1700 =  _.sum(_.map(counts, function(c) { return c.cnt_1700; }));	
+	retval.cnt_1715 =  _.sum(_.map(counts, function(c) { return c.cnt_1715; }));	
+	retval.cnt_1730 =  _.sum(_.map(counts, function(c) { return c.cnt_1730; }));	
+	retval.cnt_1745 =  _.sum(_.map(counts, function(c) { return c.cnt_1745; }));	
+
+	retval.cnt_1800 =  _.sum(_.map(counts, function(c) { return c.cnt_1800; }));	
+	retval.cnt_1815 =  _.sum(_.map(counts, function(c) { return c.cnt_1815; }));	
+	retval.cnt_1830 =  _.sum(_.map(counts, function(c) { return c.cnt_1830; }));	
+	retval.cnt_1845 =  _.sum(_.map(counts, function(c) { return c.cnt_1845; }));	
+
+	retval.cnt_1900 =  _.sum(_.map(counts, function(c) { return c.cnt_1900; }));	
+	retval.cnt_1915 =  _.sum(_.map(counts, function(c) { return c.cnt_1915; }));	
+	retval.cnt_1930 =  _.sum(_.map(counts, function(c) { return c.cnt_1930; }));	
+	retval.cnt_1945 =  _.sum(_.map(counts, function(c) { return c.cnt_1945; }));	
+	
+	retval.cnt_2000 =  _.sum(_.map(counts, function(c) { return c.cnt_2000; }));	
+	retval.cnt_2015 =  _.sum(_.map(counts, function(c) { return c.cnt_2015; }));	
+	retval.cnt_2030 =  _.sum(_.map(counts, function(c) { return c.cnt_2030; }));	
+	retval.cnt_2045 =  _.sum(_.map(counts, function(c) { return c.cnt_2045; }));	
+
+	return retval;
+} // summarize_set_of_counts
+
+
 function make_popup_content(feature) {
-	var loc_id, counts, oldest_count_date, newest_count_date, 
+	var loc_id, counts, 
+	    oldest_count_date, newest_count_date, 
 	    oldest_counts = [], newest_counts = [],
+		oldest_count_summary = {}, 
 	    am_peak = 0,  pm_peak = 0;
 		
 	loc_id = feature.properties.loc_id;
@@ -121,7 +226,7 @@ function make_popup_content(feature) {
 	// Defensive programming:
 	// Believe it or not, there are some count locations with no counts!
 	if (counts.length == 0) {
-		var _DEBUG_HOOK  = 0;
+		var _DEBUG_HOOK = 0;
 		console.log('No counts with count loc_id == ' + loc_id + ' found.');
 		return;
 	}
@@ -136,21 +241,17 @@ function make_popup_content(feature) {
 	// Debug 
 	console.log(loc_id + ' #oldest_counts = ' + oldest_counts.length + ' #newest_counts = ' + newest_counts.length);
 	
-	// Temp hack
-	var newest_count = newest_counts[0],
-	    oldest_count = oldest_counts[0];
-	
-	
-	// The following statements will need to be changed:
-	am_peak = calc_am_peak(newest_count);
-	pm_peak = calc_pm_peak(newest_count);
+	newest_count_summary = summarize_set_of_counts(newest_counts);
+
+	am_peak = calc_am_peak(newest_count_summary);
+	pm_peak = calc_pm_peak(newest_count_summary);
 		  
 	content = 'Location ID ' + loc_id + '</br>';
     content += feature.properties.description + '</br>';
-	content += 'Most recent count : ' + newest_count.count_date.substr(0,10) + '</br>';
-	content += 'AM peak volume : ' + am_peak + '</br>';
-	content += 'PM peak volume : ' + pm_peak + '</br>';
-	content += 'Oldest count : ' + oldest_count.count_date.substr(0,10) + '</br>';			  
+	content += 'Most recent count : ' + newest_count_date + '</br>';
+	content += 'Total volume AM peak : ' + am_peak + '</br>';
+	content += 'Total volume PM peak : ' + pm_peak + '</br>';
+	content += 'Oldest count : ' + oldest_count_date + '</br>';			  
 	
 	return content;
 }
