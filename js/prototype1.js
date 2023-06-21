@@ -75,9 +75,20 @@ function add_countlocs_to_cl_set(cls, countlocs) {
 function clear_cl_set(cls) {
 	cls.countlocs = [];
 }
-
 function make_popup_content(feature) {
-	var content = 'Location ID = ' + feature.properties.loc_id;
+	var loc_id, counts, oldest_count, newest_count;
+	loc_id = feature.properties.loc_id;
+	
+	counts = _.filter(all_counts, function(c) { return c.bp_loc_id == loc_id; });
+	counts = _.sortBy(counts, [function(o) { return o.count_date.substr(0,10); }]);
+	oldest_count = counts[0];
+	newest_count = counts[counts.length-1];
+	
+	content = 'Location ID ' + loc_id + '</br>';
+    content += feature.properties.description + '</br>';
+	content += 'Most recent count : ' + newest_count.count_date.substr(0,10) + '</br>';
+	content += 'Oldest count : ' + oldest_count.count_date.substr(0,10) + '</br>';
+	
 	return content;
 }
 
