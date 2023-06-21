@@ -111,9 +111,11 @@ function calc_pm_peak(c) {
 }
 
 function make_popup_content(feature) {
-	var loc_id, counts, oldest_count, newest_count, am_peak = 0,  pm_peak = 0;
+	var loc_id, counts, oldest_count_date, newest_count_date, 
+	    oldest_counts = [], newest_counts = [],
+	    am_peak = 0,  pm_peak = 0;
+		
 	loc_id = feature.properties.loc_id;
-	
 	counts = _.filter(all_counts, function(c) { return c.bp_loc_id == loc_id; });
 	
 	// Defensive programming:
@@ -125,9 +127,21 @@ function make_popup_content(feature) {
 	}
 	
 	counts = _.sortBy(counts, [function(o) { return o.count_date.substr(0,10); }]);
-	oldest_count = counts[0];
-	newest_count = counts[counts.length-1];
+	oldest_count_date = counts[0].count_date.substr(0,10);
+	newest_count_date = counts[counts.length-1].count_date.substr(0,10);
 	
+	oldest_counts = _.filter(counts, function(c) { return c.count_date.substr(0,10) == oldest_count_date; });
+	newest_counts = _.filter(counts, function(c) { return c.count_date.substr(0,10) == newest_count_date; });
+	
+	// Debug 
+	console.log(loc_id + ' #oldest_counts = ' + oldest_counts.length + ' #newest_counts = ' + newest_counts.length);
+	
+	// Temp hack
+	var newest_count = newest_counts[0],
+	    oldest_count = oldest_counts[0];
+	
+	
+	// The following statements will need to be changed:
 	am_peak = calc_am_peak(newest_count);
 	pm_peak = calc_pm_peak(newest_count);
 		  
