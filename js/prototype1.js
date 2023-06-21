@@ -76,6 +76,11 @@ function clear_cl_set(cls) {
 	cls.countlocs = [];
 }
 
+function make_popup_content(feature) {
+	var content = 'Location ID = ' + feature.properties.loc_id;
+	return content;
+}
+
 // Add markers for  countlocs to the leaflet map
 // As each marker is created, it is added to the cls.markers array	
 function add_markers_for_cl_set(cls) {
@@ -83,7 +88,7 @@ function add_markers_for_cl_set(cls) {
 	L.geoJSON(cls.countlocs, {
 		pointToLayer: function (feature, latlng) {
 			var content, marker;
-			content = 'Location ID = ' + feature.properties.loc_id;
+			content = make_popup_content(feature);
 			// marker = L.circleMarker(latlng, geojsonMarkerOptions);
 			marker = L.marker(latlng, { icon: cls.icon });
 			marker.bindPopup(content);
