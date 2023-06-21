@@ -75,19 +75,62 @@ function add_countlocs_to_cl_set(cls, countlocs) {
 function clear_cl_set(cls) {
 	cls.countlocs = [];
 }
+
+function calc_am_peak(c) {
+	var retval;
+	console.log(c.bp_loc_id);
+	
+	retval = (c.cnt_0630 != null) ? c.cnt_0630 : 0 + 
+	         (c.cnt_0645 != null) ? c.cnt_0645 : 0 +
+	         (c.cnt_0700 == null) ? 0 : c.cnt_0700 +
+			 (c.cnt_0715 == null) ? 0 : c.cnt_0715 +
+			 (c.cnt_0730 == null) ? 0 : c.cnt_0730 + 
+			 (c.cnt_0745 == null) ? 0 : c.cnt_0745 +
+		     (c.cnt_0800 == null) ? 0 : c.cnt_0800 +
+			 (c.cnt_0815 == null) ? 0 : c.cnt_0815 +
+			 (c.cnt_0830 == null) ? 0 : c.cnt_0830 + 
+			 (c.cnt_0845 == null) ? 0 : c.cnt_0845;
+	return retval;
+}
+
+function calc_pm_peak(c) {
+	var retval;
+	retval = 0;
+/* 
+		pm_peak = c.cnt_1600 + c.cnt_1615 + c.cnt_1630 + c.cnt_1645 +
+	          c.cnt_1700 + c.cnt_1715 + c.cnt_1730 + c.cnt_1745 +
+			  c.cnt_1800 + c.cnt_1815 + c.cnt_1830 + c.cnt_1845;
+*/
+	return retval;
+}
+
 function make_popup_content(feature) {
-	var loc_id, counts, oldest_count, newest_count;
+	var loc_id, counts, oldest_count, newest_count, am_peak = 0,  pm_peak = 0;
 	loc_id = feature.properties.loc_id;
 	
 	counts = _.filter(all_counts, function(c) { return c.bp_loc_id == loc_id; });
+	
+	// Defensive programming:
+	// Believe it or not, there are some count locations with no counts!
+	if (counts.length == 0) {
+		var _DEBUG_HOOK  = 0;
+		console.log('No counts with count loc_id == ' + loc_id + ' found.');
+		return;
+	}
+	
 	counts = _.sortBy(counts, [function(o) { return o.count_date.substr(0,10); }]);
 	oldest_count = counts[0];
 	newest_count = counts[counts.length-1];
 	
+	am_peak = calc_am_peak(newest_count);
+	pm_peak = calc_pm_peak(newest_count);
+		  
 	content = 'Location ID ' + loc_id + '</br>';
     content += feature.properties.description + '</br>';
 	content += 'Most recent count : ' + newest_count.count_date.substr(0,10) + '</br>';
-	content += 'Oldest count : ' + oldest_count.count_date.substr(0,10) + '</br>';
+	content += 'AM peak volume : ' + am_peak + '</br>';
+	content += 'PM peak volume : ' + pm_peak + '</br>';
+	content += 'Oldest count : ' + oldest_count.count_date.substr(0,10) + '</br>';			  
 	
 	return content;
 }
@@ -362,9 +405,12 @@ function initialize() {
 		
 		// DIAGNOSTIC / DEBUG - requires loading of separate 'js/diagnostics.js' file
 		if (bDebug == true) {
+			var errors, _DEBUG_HOOK;
 			// validate_integrity_of_countloc_geometry(all_countlocs);
-			var errors = validate_referential_integrity(all_countlocs, all_counts);	
-			var _DEBUG_HOOK = 0;
+			errors = validate_referential_integrity(all_countlocs, all_counts);	
+			DEBUG_HOOK = 0;
+			errors = validate_count_data(all_counts);
+			_DEBUG_HOOK = 1;
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
