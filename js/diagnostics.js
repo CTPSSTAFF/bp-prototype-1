@@ -32,18 +32,3 @@ function validate_referential_integrity(countlocs, counts) {
 	});
 	return errors;
 } 
-
-function validate_count_data(counts) {
-	var errors = [];
-	counts.forEach(function(count) {
-		var count_id = count.count_id;
-		console.log(count_id);
-		if (count_id == '20600') {
-			var _DEBUG_HOOK = 0;
-		}
-		if (!count.hasOwnProperty('count_date')) {
-			errors.push(count_id + 'no count_date');
-		}
-	});
-	return errors;
-}
