@@ -78,29 +78,35 @@ function clear_cl_set(cls) {
 
 function calc_am_peak(c) {
 	var retval;
-	console.log(c.bp_loc_id);
-	
-	retval = (c.cnt_0630 != null) ? c.cnt_0630 : 0 + 
-	         (c.cnt_0645 != null) ? c.cnt_0645 : 0 +
-	         (c.cnt_0700 == null) ? 0 : c.cnt_0700 +
-			 (c.cnt_0715 == null) ? 0 : c.cnt_0715 +
-			 (c.cnt_0730 == null) ? 0 : c.cnt_0730 + 
-			 (c.cnt_0745 == null) ? 0 : c.cnt_0745 +
-		     (c.cnt_0800 == null) ? 0 : c.cnt_0800 +
-			 (c.cnt_0815 == null) ? 0 : c.cnt_0815 +
-			 (c.cnt_0830 == null) ? 0 : c.cnt_0830 + 
-			 (c.cnt_0845 == null) ? 0 : c.cnt_0845;
+	// console.log(c.bp_loc_id);
+	retval = ((c.cnt_0630 != null) ? c.cnt_0630 : 0) + 
+	         ((c.cnt_0645 != null) ? c.cnt_0645 : 0) +
+	         ((c.cnt_0700 != null) ? c.cnt_0700 : 0) +
+			 ((c.cnt_0715 != null) ? c.cnt_0715 : 0) +
+			 ((c.cnt_0730 != null) ? c.cnt_0730 : 0) + 
+			 ((c.cnt_0745 != null) ? c.cnt_0745 : 0) +
+		     ((c.cnt_0800 != null) ? c.cnt_0800 : 0) +
+			 ((c.cnt_0815 != null) ? c.cnt_0815 : 0) +
+			 ((c.cnt_0830 != null) ? c.cnt_0830 : 0) + 
+			 ((c.cnt_0845 != null) ? c.cnt_0845 : 0);
 	return retval;
 }
 
 function calc_pm_peak(c) {
 	var retval;
-	retval = 0;
-/* 
-		pm_peak = c.cnt_1600 + c.cnt_1615 + c.cnt_1630 + c.cnt_1645 +
-	          c.cnt_1700 + c.cnt_1715 + c.cnt_1730 + c.cnt_1745 +
-			  c.cnt_1800 + c.cnt_1815 + c.cnt_1830 + c.cnt_1845;
-*/
+	// console.log(c.bp_loc_id);
+	retval = ((c.cnt_1600 != null) ? c.cnt_1600 : 0) +
+	         ((c.cnt_1615 != null) ? c.cnt_1615 : 0) + 
+			 ((c.cnt_1630 != null) ? c.cnt_1630 : 0) + 
+			 ((c.cnt_1645 != null) ? c.cnt_1645 : 0) +
+	         ((c.cnt_1700 != null) ? c.cnt_1700 : 0) + 
+			 ((c.cnt_1715 != null) ? c.cnt_1715 : 0) +
+			 ((c.cnt_1730 != null) ? c.cnt_1730 : 0) + 
+			 ((c.cnt_1745 != null) ? c.cnt_1745 : 0) +
+			 ((c.cnt_1800 != null) ? c.cnt_1800 : 0) +
+		     ((c.cnt_1815 != null) ? c.cnt_1815 : 0) +
+			 ((c.cnt_1830 != null) ? c.cnt_1830 : 0) +
+			 ((c.cnt_1845 != null) ? c.cnt_1845 : 0);
 	return retval;
 }
 
@@ -408,19 +414,11 @@ function initialize() {
 			var errors, _DEBUG_HOOK;
 			// validate_integrity_of_countloc_geometry(all_countlocs);
 			errors = validate_referential_integrity(all_countlocs, all_counts);	
-			DEBUG_HOOK = 0;
-			errors = validate_count_data(all_counts);
-			_DEBUG_HOOK = 1;
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
 		add_countlocs_to_cl_set(selected_countlocs, []); // Not really necessary, just to be explicit
 		add_countlocs_to_cl_set(unselected_countlocs, _.filter(all_countlocs));
-
-		var _DEBUG_HOOK = 0;
-		
-		// selected_countlocs = _.filter(all_countlocs);
-		// selected_counts = _.filter(all_counts);
 		
 		// Populate pick-lists with initial values
 		initialize_pick_lists(all_countlocs, all_counts);
