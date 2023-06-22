@@ -12,3 +12,8 @@
 	border: 4px solid #B87F32;
 	margin-bottom: 10px;
 }
+
+#output_table {
+	/* NOTE: this is actually set in the configuration options for the jsGrid object. */
+	/* width: 80%;*/ 
+}
