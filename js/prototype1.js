@@ -324,7 +324,9 @@ function update_map(loc_ids) {
 	corner1 = L.latLng(miny, minx);
 	corner2 = L.latLng(maxy, maxx);
 	bounds  = L.latLngBounds(corner1, corner2);
-	map.flyToBounds(bounds);
+	
+	// map.flyToBounds(bounds);
+	map.fitBounds(bounds);
 	
 	// Replace the old set of 'selected' countloc markers with the new one
 	remove_markers_for_cl_set(selected_countlocs);
@@ -344,8 +346,8 @@ function update_table(countlocs) {
 	});
 		
 	$("#output_table").jsGrid({
-			height: "90%",
-			width: "100%",
+			height: "30%",
+			width: "80%", 
 			sorting: true,
 			paging: true,
 			data: data_array,
@@ -457,14 +459,18 @@ function pick_list_handler(e) {
 // reset_handler: on-click event handler for 'reset' button
 //
 function reset_handler(e) {
-	add_countlocs_to_cl_set(selected_countlocs, []);
+	// Re-initialize 'selected' countlocs
 	remove_markers_for_cl_set(selected_countlocs);
-	
+	add_countlocs_to_cl_set(selected_countlocs, []);
+
+	// Re-initialize 'un-selected' countlocs
+	remove_markers_for_cl_set(unselected_countlocs);
 	add_countlocs_to_cl_set(unselected_countlocs, _.filter(all_countlocs));
 	add_markers_for_cl_set(unselected_countlocs);
 	
 	initialize_pick_lists(all_countlocs, all_counts);
-	map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
+	// map.flyTo([regionCenterLat, regionCenterLng], initialZoom);
+	map.setView([regionCenterLat, regionCenterLng], initialZoom);
 	$('#output_table').hide();
 } // on-click handler for 'reset'
 
