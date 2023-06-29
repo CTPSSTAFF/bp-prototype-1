@@ -1,7 +1,9 @@
 // Prototype # of next-gen bike-ped counts web application
 //
-// Data: All data loaded from local GeoJSON files, 
-//       no interaction with backing DB server
+// Data: All count data loaded from local JSON file
+//       'All count locations' displayed in map using WMS service
+//       TBD display of 'selected count locations'
+//
 // Mapping platform: leaflet.js
 // Basemap: Open Street Map
 //
@@ -10,8 +12,14 @@
 var bDebug = true; // Debug/diagnostics toggle
 
 // Data sources: count locations and count data
-var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',
+var pointsURL = 'data/json/ctps_bp_count_locations_pt.geo.json',  // Unused in this version (fossil)
     countsURL = 'data/json/bp_counts.json';
+	
+var serverRoot = 'https://www.ctps.org/maploc/',
+	wms_serverRoot = serverRoot + 'WMS/';
+	wfs_serverRoot = serverRoot + 'wfs/';	// Not yet used
+	
+var all_countlocs_wms_layer = 'postgis:ctps_bp_countlocs_pt';
 
 // Innitial center and zoom level for map - approx center of MPO area
 var regionCenterLat = 42.38762765728668; 
@@ -511,6 +519,15 @@ function initialize_map() {
 			maxZoom: 19,
 			attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
 		}).addTo(map);
+		
+	const all_countlocs_layer = L.tileLayer.wms(wms_serverRoot, {
+									layers: all_countlocs_wms_layer,
+									format: 'image/png',
+									transparent: true,
+									crs: 'epsg:26986',
+									uppercase: true
+								});
+	all_countlocs_layer.addTo(map);
 }
 
 var getJson = function(url) { return $.get(url, null, 'json'); };
@@ -556,7 +573,7 @@ function initialize() {
 		
 		// Initialize leaflet map, and add markers for unselected countlocs to it
 		initialize_map();
-		add_markers_for_cl_set(unselected_countlocs);
+		// add_markers_for_cl_set(unselected_countlocs);
 		_DEBUG_HOOK = 3;
 	 });
 } // initialize
