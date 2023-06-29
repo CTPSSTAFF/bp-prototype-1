@@ -2,7 +2,7 @@
 //
 // Data: All data loaded from local GeoJSON files, 
 //       no interaction with backing DB server
-// Mapping platform: leaflet.json
+// Mapping platform: leaflet.js
 // Basemap: Open Street Map
 //
 // Author: Ben Krepp, bkrepp@ctps.org
@@ -117,7 +117,7 @@ function calc_pm_peak(c) {
 // summarize_set_of_counts: 
 // Given an input array of 'counts' records, calculate the summary across all
 // records for each 15-minute time period and return it in an object,
-// keyed by 'cnt_hhmm' key.
+// keyed by of the form 'cnt_<hhmm>'.
 function summarize_set_of_counts(counts) {
 	retval = { 'cnt_0630' : 0, 'cnt_0645' : 0,
                'cnt_0700' : 0, 'cnt_0715' : 0, 'cnt_0730' : 0, 'cnt_0745' : 0,
@@ -443,7 +443,7 @@ function pick_list_handler(e) {
 	//       and a set of un-selected count locations
 	
 	// Compute 'selection set' and 'un-selection set' of count locations.
-	// God bless the people who wrote the ES6 language definition - doing this is easy now!
+	// God bless the people who wrote the ES6 language definition - performing these computations is easy now!
 	selected_countloc_ids = counts_to_countloc_ids(selected_counts);
 	var countloc_id_set = new Set(selected_countloc_ids);
 	var selected = all_countlocs.filter(rec => countloc_id_set.has(rec.properties.loc_id));
@@ -516,6 +516,8 @@ function initialize_map() {
 var getJson = function(url) { return $.get(url, null, 'json'); };
 
 function initialize() {
+	var _DEBUG_HOOK = 0;
+	
 	 $.when(getJson(pointsURL), getJson(countsURL)).done(function(bp_countlocs, bp_counts ) {
         var ok = _.every(arguments, function(arg) { return arg[1] === "success"; });
         if (ok === false) {
@@ -525,16 +527,17 @@ function initialize() {
 		all_countlocs = bp_countlocs[0].features;
 		
 		// Note: the count data for each count 'feature' is found in the 'properties'
-		//       list of each such count 'feature' 
+		//       property of each such count 'feature' 
 		bp_counts[0].features.forEach(function(feature) {
 			all_counts.push(feature.properties);
 		});
 		
-		// DIAGNOSTIC / DEBUG - requires loading of separate 'js/diagnostics.js' file
+		// DIAGNOSTIC / DEBUG - requires that separate 'js/diagnostics.js' file has been loaded.
 		if (bDebug == true) {
-			var errors, _DEBUG_HOOK;
+			var errors;
 			// validate_integrity_of_countloc_geometry(all_countlocs);
 			errors = validate_referential_integrity(all_countlocs, all_counts);	
+			_DEBUG_HOOK = 1;
 		}
 		
 		// Initialize 'selection sets' for countlocs and counts
@@ -549,14 +552,11 @@ function initialize() {
 		
 		// Bind on-change event handler for 'reset' button 
 		$('#reset').on('click', reset_handler);
-
-		_DEBUG_HOOK = 1;
-		
-		initialize_map();
-		
-		// Add markers for unselected countlocs to map
-		add_markers_for_cl_set(unselected_countlocs);
-		
 		_DEBUG_HOOK = 2;
+		
+		// Initialize leaflet map, and add markers for unselected countlocs to it
+		initialize_map();
+		add_markers_for_cl_set(unselected_countlocs);
+		_DEBUG_HOOK = 3;
 	 });
 } // initialize
